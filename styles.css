@@ -167,7 +167,16 @@ img { display: block; max-width: 100%; }
   text-align: center;
 }
 .waitlist-card h2 { font-size: 26px; }
-.waitlist-cta { margin-top: 22px; }
+.waitlist-form {
+  display: flex; gap: 10px; max-width: 420px; margin: 22px auto 0; flex-wrap: wrap; justify-content: center;
+}
+.input {
+  flex: 1; min-width: 220px; min-height: 46px; padding: 10px 14px; font: inherit;
+  font-size: 15px; color: var(--color-text); caret-color: var(--color-accent);
+  background: var(--color-bg);
+  border: 1px solid var(--color-divider); border-radius: var(--radius-md);
+}
+.input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
 .form-note { font-size: 12px; margin-top: 12px; }
 
 /* — footer — */

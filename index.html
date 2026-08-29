@@ -106,15 +106,11 @@
         <p class="eyebrow">Field testing now</p>
         <h2>Want in when it ships?</h2>
         <p class="text-muted">B8fish is being field-tested on real water before it goes on the App Store. Leave your email and you'll hear the moment it's live.</p>
-        <!--
-          No backend yet — browsers block/warn on <form action="mailto:">
-          submissions as insecure, so this is a plain mailto link instead: it
-          opens the visitor's email client pre-addressed and pre-filled,
-          ready to send. Replace with a real signup form (a Google Form,
-          Mailchimp, ConvertKit, Formspree, etc.) once you pick one.
-        -->
-        <a class="btn btn-primary waitlist-cta" href="mailto:jonathan.low@b8fish.io?subject=B8fish%20waitlist&amp;body=Add%20me%20to%20the%20waitlist%20for%20when%20B8fish%20launches!">Email me to get notified</a>
-        <p class="form-note text-muted">Opens your email app, addressed and ready to send — no spam, just a heads-up at launch.</p>
+        <form class="waitlist-form" id="waitlist-form" action="https://formspree.io/f/mjyvkjaq" method="POST">
+          <input class="input" type="email" name="email" placeholder="you@example.com" required aria-label="Email address">
+          <button class="btn btn-primary" type="submit">Notify me</button>
+        </form>
+        <p class="form-note text-muted" id="waitlist-status">No spam — just a heads-up at launch.</p>
       </div>
     </section>
   </main>
@@ -126,5 +122,34 @@
     </div>
   </footer>
 
+  <script>
+    // Submits to Formspree via fetch instead of a normal form POST, so a
+    // signup doesn't navigate the visitor away to Formspree's own
+    // thank-you page — this swaps in an inline message instead.
+    const waitlistForm = document.getElementById('waitlist-form');
+    const waitlistStatus = document.getElementById('waitlist-status');
+    waitlistForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const submitButton = waitlistForm.querySelector('button');
+      submitButton.disabled = true;
+      try {
+        const response = await fetch(waitlistForm.action, {
+          method: 'POST',
+          body: new FormData(waitlistForm),
+          headers: { Accept: 'application/json' },
+        });
+        if (response.ok) {
+          waitlistForm.style.display = 'none';
+          waitlistStatus.textContent = "You're on the list — we'll email you at launch.";
+        } else {
+          waitlistStatus.textContent = 'Something went wrong — please try again in a moment.';
+          submitButton.disabled = false;
+        }
+      } catch {
+        waitlistStatus.textContent = 'Something went wrong — please try again in a moment.';
+        submitButton.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>
