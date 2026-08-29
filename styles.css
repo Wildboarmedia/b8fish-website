@@ -1,0 +1,199 @@
+/* Nocturne — same design tokens as the B8fish iOS app.
+   Source: ~/Downloads/design_handoff_lurelog/nocturne/styles.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --color-bg: #161826;
+  --color-surface: #232532;
+  --color-text: #e9e9ed;
+  --color-accent: #9184d9;
+  --color-divider: color-mix(in srgb, #e9e9ed 16%, transparent);
+
+  --color-accent-100: #f5f4ff;
+  --color-accent-200: #e7e5fe;
+  --color-accent-300: #d2cefd;
+  --color-accent-400: #b5abfc;
+  --color-accent-800: #423a6a;
+  --color-accent-900: #2b2741;
+
+  --color-section: #262a60;
+  --color-section-glow: #353b80;
+
+  --font-heading: "Inter", system-ui, sans-serif;
+  --font-heading-weight: 500;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  --space-2: 5.6px;
+  --space-3: 8.4px;
+  --space-4: 11.2px;
+  --space-6: 16.8px;
+  --space-8: 22.4px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 0 0 1px #3f424d;
+  --shadow-md: 0 0 0 1px #595d6c, 0 6px 18px rgba(0,0,0,0.55);
+  --shadow-lg: 0 0 0 1px #9397ab, 0 16px 40px rgba(0,0,0,0.65);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--color-bg); color: var(--color-text);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.55; font-weight: 400;
+}
+h1, h2, h3, h4 {
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  line-height: 1.12; letter-spacing: -0.015em; margin: 0 0 var(--space-2);
+}
+p { margin: 0 0 var(--space-3); }
+a { color: var(--color-accent); text-underline-offset: 3px; }
+img { display: block; max-width: 100%; }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
+
+.container { width: min(1080px, 100% - 48px); margin-inline: auto; }
+.text-muted { color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+.eyebrow {
+  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--color-accent-400); margin: 0 0 8px;
+}
+
+/* Rules fade to transparent at both ends — a Nocturne signature. */
+.hr {
+  height: 1px; border: 0; margin: var(--space-8) 0;
+  background: linear-gradient(to right,
+    transparent, var(--color-divider) 48px,
+    var(--color-divider) calc(100% - 48px), transparent);
+}
+
+/* — nav — */
+.nav {
+  display: flex; align-items: center; gap: var(--space-6);
+  padding: 22px 0;
+}
+.nav-brand {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-heading); font-weight: 600;
+  font-size: 19px; margin-right: auto; color: var(--color-text); text-decoration: none;
+}
+.nav-brand img { width: 30px; height: 30px; border-radius: 8px; }
+.nav a.nav-link { color: color-mix(in srgb, var(--color-text) 75%, transparent); text-decoration: none; font-size: 14.5px; }
+.nav a.nav-link:hover { color: var(--color-accent); }
+
+/* — buttons — */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  cursor: pointer; text-decoration: none;
+  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
+  font-size: 15px; line-height: 1.2; color: var(--color-text);
+  background: transparent; border: 1px solid transparent;
+  padding: 13px 22px; border-radius: var(--radius-md);
+}
+.btn-primary { color: var(--color-accent-300); border-color: var(--color-accent); }
+.btn-primary:hover { background: color-mix(in srgb, var(--color-accent) 12%, transparent); }
+.btn-secondary { border-color: var(--color-divider); }
+.btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+
+/* — hero — */
+.hero {
+  padding: 64px 0 40px;
+  display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center;
+}
+.hero h1 { font-size: 48px; max-width: 15ch; }
+.hero .lede { font-size: 17.5px; max-width: 46ch; color: color-mix(in srgb, var(--color-text) 78%, transparent); }
+.hero-actions { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+.hero-note { margin-top: 14px; font-size: 12.5px; }
+
+.phone-frame {
+  justify-self: center; width: 100%; max-width: 300px;
+  border-radius: 42px; padding: 14px;
+  background: linear-gradient(160deg, #1d1f30, #12131d);
+  box-shadow: var(--shadow-lg);
+}
+.phone-frame img {
+  border-radius: 28px; width: 100%; display: block;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+
+/* — feature grid — */
+.section { padding: 56px 0; }
+.section-head { max-width: 56ch; margin-bottom: 36px; }
+.section-head h2 { font-size: 30px; }
+.feature-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+}
+.feature-card {
+  padding: 22px; border-radius: var(--radius-lg);
+  background: var(--color-surface); border: 1px solid color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+.feature-card .icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: grid; place-items: center; margin-bottom: 14px;
+  background: var(--color-accent-900); color: var(--color-accent-400);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+.feature-card h3 { font-size: 17px; margin-bottom: 6px; }
+.feature-card p { font-size: 13.5px; color: color-mix(in srgb, var(--color-text) 70%, transparent); margin: 0; }
+
+/* — dataset section (uses the same saturated section-panel treatment
+   the app reserves for the bite window / lure record cards) — */
+.panel {
+  border-radius: var(--radius-lg); padding: 40px;
+  background: linear-gradient(160deg, var(--color-section), color-mix(in srgb, var(--color-section) 22%, var(--color-bg)) 70%);
+  box-shadow: var(--shadow-sm);
+  display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 40px; align-items: center;
+}
+.panel h2 { font-size: 27px; }
+.panel p { font-size: 14.5px; color: color-mix(in srgb, var(--color-text) 82%, transparent); }
+.dataset-formula {
+  font-family: var(--font-heading); font-size: 15px; font-weight: 500;
+  color: var(--color-accent-300);
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+}
+.dataset-formula span.op { color: color-mix(in srgb, var(--color-text) 45%, transparent); font-weight: 400; }
+.dataset-formula .term {
+  padding: 8px 14px; border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+
+/* — waitlist — */
+.waitlist-card {
+  padding: 32px; border-radius: var(--radius-lg);
+  background: var(--color-surface); border: 1px solid var(--color-divider);
+  text-align: center;
+}
+.waitlist-card h2 { font-size: 26px; }
+.waitlist-form {
+  display: flex; gap: 10px; max-width: 420px; margin: 22px auto 0; flex-wrap: wrap; justify-content: center;
+}
+.input {
+  flex: 1; min-width: 220px; min-height: 46px; padding: 10px 14px; font: inherit;
+  font-size: 15px; color: var(--color-text); caret-color: var(--color-accent);
+  background: var(--color-bg);
+  border: 1px solid var(--color-divider); border-radius: var(--radius-md);
+}
+.input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
+.form-note { font-size: 12px; margin-top: 12px; }
+
+/* — footer — */
+.footer {
+  padding: 32px 0 48px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  font-size: 13px; color: color-mix(in srgb, var(--color-text) 50%, transparent);
+}
+.footer a { color: color-mix(in srgb, var(--color-text) 60%, transparent); }
+.footer a:hover { color: var(--color-accent); }
+.footer-links { display: flex; gap: 20px; }
+
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; padding-top: 40px; }
+  .hero h1 { font-size: 36px; max-width: none; }
+  .phone-frame { max-width: 240px; }
+  .feature-grid { grid-template-columns: 1fr; }
+  .panel { grid-template-columns: 1fr; padding: 28px; }
+  .nav { flex-wrap: wrap; row-gap: 10px; }
+}

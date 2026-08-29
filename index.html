@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>B8fish — Log catches, learn your lures</title>
+  <meta name="description" content="B8fish is an iPhone app for anglers: log a catch in one tap, build a photo library of your lures, and see live conditions and bite windows for where you're fishing.">
+  <link rel="icon" href="assets/app-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="container nav">
+    <a class="nav-brand" href="#">
+      <img src="assets/app-icon.png" alt="">
+      B8fish
+    </a>
+    <a class="nav-link" href="#features">Features</a>
+    <a class="nav-link" href="#dataset">The dataset</a>
+    <a class="nav-link" href="#waitlist">Get notified</a>
+  </header>
+
+  <main>
+    <section class="container hero">
+      <div>
+        <p class="eyebrow">For anglers who track patterns</p>
+        <h1>Know what's working, before you forget why.</h1>
+        <p class="lede">
+          B8fish logs a catch in one tap — species, lure, and live conditions,
+          captured while the fish goes back in the water. Build a photo
+          library of your tackle box, and start seeing which lure works,
+          where, and when.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#waitlist">Get notified at launch</a>
+          <a class="btn btn-secondary" href="#features">See how it works</a>
+        </div>
+        <p class="hero-note text-muted">Not yet on the App Store — currently in field testing.</p>
+      </div>
+      <div class="phone-frame">
+        <img src="assets/hero-today.png" alt="B8fish app screenshot: today's bite window, showing a strong rating with live wind, gust, barometric pressure, moon phase, air temperature and sky conditions.">
+      </div>
+    </section>
+
+    <div class="container"><hr class="hr"></div>
+
+    <section class="container section" id="features">
+      <div class="section-head">
+        <p class="eyebrow">What it does</p>
+        <h2>Three jobs. Nothing else competing for your attention.</h2>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3v7h7"/><path d="M13 3 4 12l4 4 9-9-4-4Z"/></svg>
+          </div>
+          <h3>Log a catch in one tap</h3>
+          <p>Camera opens first, because getting the fish back in the water matters more than filling out a form. Species, size, and the lure already tied on — everything else can wait.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          </div>
+          <h3>Live conditions, honestly scored</h3>
+          <p>Wind, gust, barometric trend, moon phase and sky pulled from a live weather feed — feeding a bite-window rating built from real angling signals, not a fake number.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </div>
+          <h3>A tackle box that remembers</h3>
+          <p>Photograph every lure once. See how many catches it's actually landed, hold to tie it on, and know exactly what's tied on right now without digging through a tray.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="container section" id="dataset">
+      <div class="panel">
+        <div>
+          <p class="eyebrow">Where this is going</p>
+          <h2>Every catch you log is a data point toward a real question.</h2>
+          <p>
+            Fishing forums are full of opinions about what works. B8fish is
+            building toward something better: a dataset that connects the
+            lure to the species, the water, and the exact conditions at the
+            moment of the bite — logged by anglers actually fishing, not
+            guessed after the fact.
+          </p>
+          <p class="text-muted">
+            The eventual goal is a recommendation you can trust: the right
+            lure for this species, this water, right now — grounded in real
+            catches, not folklore.
+          </p>
+        </div>
+        <div class="dataset-formula" aria-hidden="true">
+          <span class="term">Species</span><span class="op">×</span>
+          <span class="term">Lure</span><span class="op">×</span>
+          <span class="term">Water</span><span class="op">×</span>
+          <span class="term">Conditions</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="container section" id="waitlist">
+      <div class="waitlist-card">
+        <p class="eyebrow">Field testing now</p>
+        <h2>Want in when it ships?</h2>
+        <p class="text-muted">B8fish is being field-tested on real water before it goes on the App Store. Leave your email and you'll hear the moment it's live.</p>
+        <!--
+          No backend yet — this opens the visitor's email client addressed
+          to you. Swap the address below for whichever inbox should collect
+          signups, or replace this whole form with an embed from a mailing-
+          list tool (e.g. a Google Form, Mailchimp, ConvertKit) once you pick one.
+        -->
+        <form class="waitlist-form" action="mailto:hello@b8fishapp.com" method="post" enctype="text/plain">
+          <input class="input" type="email" name="email" placeholder="you@example.com" required aria-label="Email address">
+          <button class="btn btn-primary" type="submit">Notify me</button>
+        </form>
+        <p class="form-note text-muted">No spam — just a heads-up at launch.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container footer">
+    <span>© 2026 B8fish.</span>
+    <div class="footer-links">
+      <a href="https://github.com/Wildboarmedia/B8fish" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </footer>
+
+</body>
+</html>
