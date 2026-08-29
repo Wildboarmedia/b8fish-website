@@ -107,16 +107,14 @@
         <h2>Want in when it ships?</h2>
         <p class="text-muted">B8fish is being field-tested on real water before it goes on the App Store. Leave your email and you'll hear the moment it's live.</p>
         <!--
-          No backend yet — this opens the visitor's email client addressed
-          to you. Swap the address below for whichever inbox should collect
-          signups, or replace this whole form with an embed from a mailing-
-          list tool (e.g. a Google Form, Mailchimp, ConvertKit) once you pick one.
+          No backend yet — browsers block/warn on <form action="mailto:">
+          submissions as insecure, so this is a plain mailto link instead: it
+          opens the visitor's email client pre-addressed and pre-filled,
+          ready to send. Replace with a real signup form (a Google Form,
+          Mailchimp, ConvertKit, Formspree, etc.) once you pick one.
         -->
-        <form class="waitlist-form" action="mailto:jonathan.low@b8fish.io" method="post" enctype="text/plain">
-          <input class="input" type="email" name="email" placeholder="you@example.com" required aria-label="Email address">
-          <button class="btn btn-primary" type="submit">Notify me</button>
-        </form>
-        <p class="form-note text-muted">No spam — just a heads-up at launch.</p>
+        <a class="btn btn-primary waitlist-cta" href="mailto:jonathan.low@b8fish.io?subject=B8fish%20waitlist&amp;body=Add%20me%20to%20the%20waitlist%20for%20when%20B8fish%20launches!">Email me to get notified</a>
+        <p class="form-note text-muted">Opens your email app, addressed and ready to send — no spam, just a heads-up at launch.</p>
       </div>
     </section>
   </main>
