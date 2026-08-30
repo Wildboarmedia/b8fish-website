@@ -75,11 +75,11 @@ img { display: block; max-width: 100%; }
   padding: 22px 0;
 }
 .nav-brand {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 12px;
   font-family: var(--font-heading); font-weight: 600;
-  font-size: 19px; margin-right: auto; color: var(--color-text); text-decoration: none;
+  font-size: 22px; margin-right: auto; color: var(--color-text); text-decoration: none;
 }
-.nav-brand img { width: 30px; height: 30px; border-radius: 8px; }
+.nav-brand img { width: 44px; height: 44px; border-radius: 11px; }
 .nav a.nav-link { color: color-mix(in srgb, var(--color-text) 75%, transparent); text-decoration: none; font-size: 14.5px; }
 .nav a.nav-link:hover { color: var(--color-accent); }
 
