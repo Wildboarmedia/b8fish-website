@@ -79,7 +79,7 @@ img { display: block; max-width: 100%; }
   font-family: var(--font-heading); font-weight: 600;
   font-size: 22px; margin-right: auto; color: var(--color-text); text-decoration: none;
 }
-.nav-brand img { width: 44px; height: 44px; border-radius: 11px; }
+.nav-brand img { width: 50px; height: 50px; border-radius: 13px; }
 .nav a.nav-link { color: color-mix(in srgb, var(--color-text) 75%, transparent); text-decoration: none; font-size: 14.5px; }
 .nav a.nav-link:hover { color: var(--color-accent); }
 
