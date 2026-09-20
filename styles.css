@@ -107,8 +107,9 @@ img { display: block; max-width: 100%; }
 .hero-actions { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
 .hero-note { margin-top: 14px; font-size: 12.5px; }
 
+.phone-preview { justify-self: center; width: 100%; max-width: 300px; }
 .phone-frame {
-  justify-self: center; width: 100%; max-width: 300px;
+  width: 100%;
   border-radius: 42px; padding: 14px;
   background: linear-gradient(160deg, #1d1f30, #12131d);
   box-shadow: var(--shadow-lg);
@@ -117,6 +118,27 @@ img { display: block; max-width: 100%; }
   border-radius: 28px; width: 100%; display: block;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-text) 10%, transparent);
 }
+
+/* — clickable tab-bar preview, mirrors the app's own bottom nav — */
+.tab-bar {
+  display: flex; margin-top: 14px;
+  border-radius: var(--radius-lg); padding: 6px;
+  background: var(--color-surface); border: 1px solid var(--color-divider);
+}
+.tab-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 4px 7px; border: none; border-radius: var(--radius-md);
+  background: transparent; cursor: pointer;
+  font-family: var(--font-heading); font-size: 10.5px; font-weight: 500;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+.tab-btn svg { stroke: currentColor; }
+.tab-btn:hover { color: var(--color-text); }
+.tab-btn.is-active {
+  color: var(--color-accent-300);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+.phone-preview-hint { margin-top: 10px; text-align: center; font-size: 12px; }
 
 /* — feature grid — */
 .section { padding: 56px 0; }
