@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Log in · b8fish</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="dashboard.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="app-body">
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="header-left">
+        <a href="../index.html" class="brand">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12c3-5 9-6 13-3l5-3v12l-5-3c-4 3-10 2-13-3z"></path>
+            <circle cx="8" cy="11" r="0.8"></circle>
+          </svg>
+          b8fish
+        </a>
+      </div>
+    </header>
+
+    <main class="app-main" style="max-width:440px; margin-inline:auto;">
+      <div class="panel" style="margin-top:48px;">
+        <div class="panel-head" style="align-items:center; text-align:center;">
+          <p class="eyebrow">Member login</p>
+          <h1 class="page-title" style="font-size:30px;">Welcome back</h1>
+          <div class="panel-note">Same account as the B8fish app.</div>
+        </div>
+
+        <div id="mode-toggle" role="group" aria-label="Sign in or create account" style="display:flex; gap:8px; justify-content:center;">
+          <button class="btn btn-filter is-active" data-mode="signin" type="button">Sign in</button>
+          <button class="btn btn-filter" data-mode="signup" type="button">Create account</button>
+        </div>
+
+        <form id="auth-form" style="display:flex; flex-direction:column; gap:14px;">
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label for="email" class="eyebrow">Email</label>
+            <input class="input" id="email" type="email" autocomplete="email" required />
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label for="password" class="eyebrow">Password</label>
+            <input class="input" id="password" type="password" autocomplete="current-password" required minlength="6" />
+          </div>
+
+          <div id="error-msg" class="text-muted" style="font-size:13px; color:var(--series-orange); display:none;"></div>
+
+          <button class="btn btn-accent btn-lg" type="submit" id="submit-btn">Sign in</button>
+        </form>
+      </div>
+
+      <p class="text-muted" style="font-size:13px; text-align:center; margin-top:18px;">
+        Got the B8fish app? Create your account there first, then sign in here with the same email and password.
+      </p>
+    </main>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let mode = "signin";
+    const modeButtons = Array.from(document.querySelectorAll("#mode-toggle .btn-filter"));
+    const submitBtn = document.getElementById("submit-btn");
+    const errorMsg = document.getElementById("error-msg");
+    const form = document.getElementById("auth-form");
+
+    modeButtons.forEach(btn => btn.addEventListener("click", () => {
+      modeButtons.forEach(b => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      mode = btn.dataset.mode;
+      submitBtn.textContent = mode === "signin" ? "Sign in" : "Create account";
+      errorMsg.style.display = "none";
+    }));
+
+    function redirectTarget() {
+      const params = new URLSearchParams(location.search);
+      return params.get("redirect") || "my-catches.html";
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorMsg.style.display = "none";
+      submitBtn.disabled = true;
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      try {
+        const { error } = mode === "signin"
+          ? await supabaseClient.auth.signInWithPassword({ email, password })
+          : await supabaseClient.auth.signUp({ email, password });
+
+        if (error) throw error;
+        location.href = redirectTarget();
+      } catch (err) {
+        errorMsg.textContent = err.message || "Something went wrong — try again.";
+        errorMsg.style.display = "block";
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Already signed in (e.g. came here directly) — skip straight through.
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+      if (session) location.href = redirectTarget();
+    });
+  </script>
+</body>
+</html>

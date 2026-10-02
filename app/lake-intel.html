@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lake Intel · b8fish</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="dashboard.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="app-body">
+  <div class="app-shell">
+    <div id="header-mount"></div>
+
+    <main class="app-main">
+      <div class="page-head">
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <span class="eyebrow" id="eyebrow-mount">LAKE INTEL · COMMUNITY DATA</span>
+          <h1 class="page-title" id="lake-name-mount">Pick a water</h1>
+          <div class="text-muted" style="font-size:14px;" id="lake-sub-mount"></div>
+        </div>
+        <div id="search-mount"></div>
+      </div>
+
+      <div id="kpi-mount"></div>
+
+      <div class="split-row">
+        <section class="panel flex-main">
+          <div class="panel-head">
+            <h2>Hot zones</h2>
+            <div class="panel-note" id="hotzones-sub-mount"></div>
+          </div>
+          <div id="map-mount"></div>
+        </section>
+        <section class="panel flex-side narrow">
+          <div class="panel-head">
+            <h2>Bite time</h2>
+            <div class="panel-note">Catches by time of day, community-wide</div>
+          </div>
+          <div id="heatmap-mount"></div>
+        </section>
+      </div>
+
+      <div class="split-row">
+        <section class="panel flex-main">
+          <div class="panel-head">
+            <h2>Top lures this week</h2>
+            <div class="panel-note">Share of logged catches · trend vs last week</div>
+          </div>
+          <div id="toplures-mount"></div>
+        </section>
+        <div class="side-stack" style="width:520px;">
+          <section class="panel">
+            <div class="panel-head"><h2>Structure producing</h2></div>
+            <div id="structure-mount"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Depth this month</h2>
+              <div class="panel-note">Coming soon</div>
+            </div>
+            <p class="text-muted" style="font-size:13.5px;">
+              Depth trends need more structured depth logging across anglers than exists yet — this will light up as more catches include a depth.
+            </p>
+          </section>
+        </div>
+      </div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Conditions that turn the bite on</h2>
+          <div class="panel-note">Coming soon</div>
+        </div>
+        <p class="text-muted" style="font-size:13.5px;">
+          Correlating catch rate with barometer, wind, and moon phase needs a dedicated aggregate we haven't built yet.
+        </p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2 id="compare-heading">How you compare</h2>
+          <div class="panel-note">Coming soon</div>
+        </div>
+        <p class="text-muted" style="font-size:13.5px;">
+          Comparing your stats to the lake average needs a per-angler rollup we haven't built yet.
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="session.js"></script>
+  <script src="components.js"></script>
+  <script src="lake-intel-data.js"></script>
+  <script src="trends-analytics.js"></script>
+  <script>
+    function relativeTime(ms) {
+      const minutes = Math.max(1, Math.round((Date.now() - ms) / 60000));
+      if (minutes < 60) return `${minutes} min ago`;
+      const hours = Math.round(minutes / 60);
+      if (hours < 24) return `${hours} hr${hours === 1 ? "" : "s"} ago`;
+      const days = Math.round(hours / 24);
+      return `${days} day${days === 1 ? "" : "s"} ago`;
+    }
+
+    (async function () {
+      const session = await requireSession();
+      if (!session) return;
+
+      const ok = await requireIsPro(session.user);
+      if (!ok) return;
+
+      document.getElementById("header-mount").innerHTML = renderHeader("lake-intel", session.user.email);
+      wireHeaderSignOut();
+
+      const waters = await loadUserWaters(supabaseClient, session.user.id);
+      renderSearch(waters);
+
+      if (!waters.length) {
+        document.getElementById("lake-name-mount").textContent = "No waters tagged yet";
+        document.getElementById("lake-sub-mount").textContent = "Log a catch with a water in the app, then come back here to see what's working nearby.";
+        document.getElementById("kpi-mount").innerHTML = renderKpiGrid(buildLakeIntelKpis([]));
+        document.getElementById("map-mount").innerHTML = "";
+        document.getElementById("hotzones-sub-mount").textContent = "";
+        document.getElementById("heatmap-mount").innerHTML = "";
+        document.getElementById("toplures-mount").innerHTML = "";
+        document.getElementById("structure-mount").innerHTML = "";
+        return;
+      }
+
+      await selectWater(waters[0]);
+
+      async function selectWater(water) {
+        document.getElementById("lake-name-mount").textContent = water.name;
+
+        const [{ catchTrends, structureTrends }, ownCatches] = await Promise.all([
+          loadTrendsNearWater(supabaseClient, water),
+          loadOwnCatchesForWater(supabaseClient, session.user.id, water.id),
+        ]);
+
+        const latestRefresh = catchTrends.reduce((max, t) => {
+          const ts = new Date(t.refreshed_at).getTime();
+          return ts > max ? ts : max;
+        }, 0);
+        document.getElementById("lake-sub-mount").textContent = latestRefresh
+          ? `Based on catches from anglers who share anonymously · updated ${relativeTime(latestRefresh)}`
+          : "Based on catches from anglers who share anonymously · no community patterns published here yet";
+
+        document.getElementById("kpi-mount").innerHTML = renderKpiGrid(buildLakeIntelKpis(catchTrends));
+
+        const hotZones = buildHotZonesMap(catchTrends, ownCatches);
+        document.getElementById("hotzones-sub-mount").textContent = hotZones.sub;
+        document.getElementById("map-mount").innerHTML = renderLakeMap(hotZones);
+
+        const biteTime = buildBiteTimeBars(catchTrends);
+        document.getElementById("heatmap-mount").innerHTML = biteTime.length
+          ? renderHbarList(biteTime)
+          : '<p class="text-muted" style="font-size:13.5px;">Not enough shared data here yet.</p>';
+
+        document.getElementById("toplures-mount").innerHTML = renderTrendList(buildTopLures(catchTrends, ownCatches));
+        document.getElementById("structure-mount").innerHTML = renderHbarList(buildStructureProducing(structureTrends));
+      }
+
+      function renderSearch(waters) {
+        const mount = document.getElementById("search-mount");
+        mount.innerHTML = `
+          <div class="lake-search">
+            <label for="water-search-input">Your waters</label>
+            <div class="search-row">
+              <input id="water-search-input" type="text" list="water-options" placeholder="${esc(waters[0].name)}" />
+              <datalist id="water-options">
+                ${waters.map(w => `<option value="${esc(w.name)}"></option>`).join("")}
+              </datalist>
+              <button class="btn btn-accent" id="water-search-btn">Search</button>
+            </div>
+            <div class="chip-row" id="water-chip-row">
+              ${waters.slice(0, 4).map((w, i) => `<button class="btn btn-filter${i === 0 ? " is-active" : ""}" data-water-id="${esc(w.id)}">${esc(w.name)}</button>`).join("")}
+            </div>
+          </div>
+        `;
+
+        const chipRow = document.getElementById("water-chip-row");
+        chipRow.querySelectorAll("button").forEach(btn => {
+          btn.addEventListener("click", () => {
+            chipRow.querySelectorAll("button").forEach(b => b.classList.remove("is-active"));
+            btn.classList.add("is-active");
+            const water = waters.find(w => w.id === btn.dataset.waterId);
+            if (water) selectWater(water);
+          });
+        });
+
+        document.getElementById("water-search-btn").addEventListener("click", () => {
+          const q = document.getElementById("water-search-input").value.trim().toLowerCase();
+          const match = waters.find(w => w.name.toLowerCase().includes(q));
+          if (match) selectWater(match);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

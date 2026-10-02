@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Catches · b8fish</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="theme.css" />
+<link rel="stylesheet" href="dashboard.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="app-body">
+  <div class="app-shell">
+    <div id="header-mount"></div>
+
+    <main class="app-main">
+      <div class="page-head">
+        <div>
+          <div class="date-range" id="date-range-mount"></div>
+          <h1 class="page-title">My Catches</h1>
+        </div>
+        <div id="filters-mount"></div>
+      </div>
+
+      <div id="kpi-mount"></div>
+
+      <div id="hero-mount"></div>
+
+      <div class="split-row">
+        <section class="panel flex-main">
+          <div class="panel-head">
+            <h2>Patterns emerging</h2>
+            <div class="panel-note">Confidence grows as you log more catches</div>
+          </div>
+          <div id="patterns-mount"></div>
+        </section>
+        <section class="panel flex-side">
+          <div class="panel-head">
+            <h2>Bite clock</h2>
+            <div class="panel-note">Catches by hour of day, all waters</div>
+          </div>
+          <div id="bite-clock-mount"></div>
+        </section>
+      </div>
+
+      <div class="split-row">
+        <section class="panel flex-main">
+          <div class="panel-head">
+            <h2>Your lures</h2>
+            <div class="panel-note">Ranked by catches</div>
+          </div>
+          <div id="lures-mount"></div>
+        </section>
+        <div class="side-stack">
+          <section class="panel">
+            <div class="panel-head"><h2>Species mix</h2></div>
+            <div id="species-mount"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Depth at catch</h2>
+              <div class="panel-note" id="depth-sub-mount"></div>
+            </div>
+            <div id="depth-mount"></div>
+          </section>
+        </div>
+      </div>
+
+      <div class="split-row">
+        <section class="panel flex-main">
+          <div class="panel-head">
+            <h2 id="map-title-mount">Where you catch</h2>
+            <div class="panel-note" id="map-sub-mount"></div>
+          </div>
+          <div id="map-mount"></div>
+          <div class="chip-row" id="map-chips-mount"></div>
+        </section>
+        <section class="panel flex-side narrow">
+          <div class="panel-head"><h2>Conditions when you catch</h2></div>
+          <div id="conditions-mount"></div>
+        </section>
+      </div>
+
+      <section class="panel">
+        <div class="panel-head row">
+          <div>
+            <h2>Catch log</h2>
+            <div class="panel-note" id="catchlog-sub-mount"></div>
+          </div>
+          <a href="#" class="panel-link">View all catches →</a>
+        </div>
+        <div id="catchlog-mount"></div>
+        <div id="warn-mount"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="session.js"></script>
+  <script src="data.js"></script>
+  <script src="components.js"></script>
+  <script src="my-catches-data.js"></script>
+  <script src="analytics.js"></script>
+  <script>
+    (async function () {
+      const session = await requireSession();
+      if (!session) return; // requireSession already redirected to login.html
+
+      const ok = await requireIsPro(session.user);
+      if (!ok) return; // requireIsPro already rendered the upgrade block
+
+      const { catches, waters } = await loadMyCatchesRaw(supabaseClient, session.user.id);
+      const d = buildMyCatchesData(catches, waters);
+
+      document.getElementById("header-mount").innerHTML = renderHeader("my-catches", session.user.email);
+      wireHeaderSignOut();
+      document.getElementById("date-range-mount").textContent = d.dateRange;
+      document.getElementById("filters-mount").innerHTML = renderFilterChips(d.filters);
+      document.getElementById("kpi-mount").innerHTML = renderKpiGrid(d.kpis);
+      document.getElementById("hero-mount").innerHTML = renderHeroInsight(d.hero);
+      document.getElementById("patterns-mount").innerHTML = renderPatternGrid(d.patterns);
+      document.getElementById("bite-clock-mount").innerHTML = renderBiteClock(d.biteClock);
+      document.getElementById("lures-mount").innerHTML = renderLureTable(d.lures);
+      document.getElementById("species-mount").innerHTML = renderHbarList(d.speciesMix);
+      document.getElementById("depth-sub-mount").textContent = d.depthAtCatch.sub;
+      document.getElementById("depth-mount").innerHTML = renderHbarList(d.depthAtCatch.bins);
+      document.getElementById("map-title-mount").textContent = "Where you catch: " + d.map.water;
+      document.getElementById("map-sub-mount").textContent = d.map.sub;
+      document.getElementById("map-mount").innerHTML = renderLakeMap(d.map);
+      document.getElementById("map-chips-mount").innerHTML = renderFilterChips(d.map.chips);
+      document.getElementById("conditions-mount").innerHTML = renderTileGrid(d.conditions, 2);
+      document.getElementById("catchlog-sub-mount").textContent = d.catchLog.sub;
+      document.getElementById("catchlog-mount").innerHTML = renderCatchLogTable(d.catchLog.rows);
+      document.getElementById("warn-mount").innerHTML = d.warnCallout._hide ? "" : renderWarnCallout(d.warnCallout);
+    })();
+  </script>
+</body>
+</html>

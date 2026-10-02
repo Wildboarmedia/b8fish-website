@@ -1,0 +1,108 @@
+/* b8fish dashboard theme — design tokens for the member app (My Catches,
+   Lake Intel, …). Layout/type/spacing pulled from the approved dashboard
+   mockup (b8fish-dashboard-mockup.html); colors re-mapped to "Nocturne" —
+   the same palette as the marketing site (../styles.css) and the iOS app,
+   so the app surface reads as the same product. Token *names* are kept
+   from the original mockup build (e.g. --series-blue) even though the
+   hex values underneath are now purple-family, not literally blue/orange
+   — renaming them would mean touching every component for no visual gain. */
+
+:root {
+  /* — surfaces — */
+  --bg-page: #161826;      /* = Nocturne --color-bg */
+  --bg-board: #161826;
+  --bg-surface: #232532;   /* = Nocturne --color-surface */
+  --bg-surface-2: #2b2741; /* = Nocturne --color-accent-900, nested tile / avatar bg */
+  --bg-surface-3: color-mix(in srgb, #161826 90%, black); /* map canvas, darkest surface */
+
+  /* — borders — */
+  --border: color-mix(in srgb, #e9e9ed 16%, transparent); /* = Nocturne --color-divider */
+  --border-strong: color-mix(in srgb, #9184d9 35%, transparent);
+
+  /* — text — */
+  --text-primary: #e9e9ed;  /* = Nocturne --color-text */
+  --text-secondary: color-mix(in srgb, #e9e9ed 58%, transparent);
+
+  /* — brand accent (Nocturne purple) — */
+  --accent: #9184d9;
+  --accent-hover: #d2cefd;  /* = Nocturne --color-accent-300 */
+  --accent-active-bg: color-mix(in srgb, #9184d9 16%, transparent);
+  --accent-active-border: color-mix(in srgb, #9184d9 40%, transparent);
+  --accent-on-accent: #161826; /* text/icon color sitting on an accent fill */
+
+  /* — secondary data series — */
+  --series-blue: color-mix(in srgb, #e9e9ed 20%, transparent); /* neutral "other" bars — accent stays reserved for the lead series */
+  --series-orange: #e0a458; /* the one warm note: down-trends, "alt"/biggest callouts, sample-data badge */
+
+  /* — "what's working" hero panel — */
+  --hero-bg: #262a60;   /* = Nocturne --color-section */
+  --hero-border: #353b80; /* = Nocturne --color-section-glow */
+  --hero-lede: color-mix(in srgb, #e9e9ed 82%, transparent);
+
+  /* — warning / needs-attention callout — */
+  --warn-bg: color-mix(in srgb, #e0a458 12%, transparent);
+  --warn-border: color-mix(in srgb, #e0a458 40%, transparent);
+  --warn-text: color-mix(in srgb, #e0a458 85%, white);
+  --warn-accent: #e0a458;
+
+  /* — stylized map — */
+  --map-land: #241f38;
+  --map-land-edge: #3a3458;
+
+  /* — type — */
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-body: 'IBM Plex Sans', 'Helvetica Neue', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* — radii — */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-pill: 20px;
+  --radius-circle: 50%;
+
+  /* — spacing — */
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 8px;
+  --space-4: 12px;
+  --space-5: 16px;
+  --space-6: 18px;
+  --space-7: 24px;
+  --space-8: 32px;
+
+  /* — bar-chart track (shared by every horizontal-bar / depth / mix list) — */
+  --track-bg: var(--bg-surface-2);
+  --track-height: 10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+body.app-body {
+  background: var(--bg-board);
+}
+
+a { color: inherit; }
+button { font-family: inherit; cursor: pointer; }
+table { border-collapse: collapse; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.mono { font-family: var(--font-mono); }
+.eyebrow {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-secondary);
+}
+.text-muted { color: var(--text-secondary); }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0; padding: 0; margin: -1px;
+}
