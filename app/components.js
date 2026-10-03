@@ -284,8 +284,34 @@ function wireCatchLogRows() {
   });
 }
 
+// A few gentle sine-wave ripples spanning the canvas — a generic "this is
+// water" texture, not a real shoreline (we have no coastline data for an
+// arbitrary real lat/lng, so drawing an actual lake outline would
+// misrepresent it). Procedural, so it never looks the same twice but
+// always reads as water regardless of where the real dots land.
+function waterRipples(width, height) {
+  const lineCount = 5;
+  const pointsPerLine = 24;
+  let svg = "";
+  for (let i = 0; i < lineCount; i++) {
+    const yBase = height * ((i + 0.5) / lineCount);
+    const amplitude = 7 + (i % 3) * 3;
+    const wavelength = width / (2.2 + (i % 2) * 0.6);
+    const phase = i * 1.7;
+    let pts = [];
+    for (let p = 0; p <= pointsPerLine; p++) {
+      const x = (width / pointsPerLine) * p;
+      const y = yBase + Math.sin((x / wavelength) * Math.PI * 2 + phase) * amplitude;
+      pts.push(`${Math.round(x)},${Math.round(y)}`);
+    }
+    svg += `<polyline points="${pts.join(" ")}" fill="none" stroke="var(--accent)" stroke-opacity="${0.32 - i * 0.03}" stroke-width="2" stroke-linecap="round"></polyline>`;
+  }
+  return svg;
+}
+
 // ---------- stylized lake map (shared by My Catches + Lake Intel) ----------
 function renderLakeMap(map) {
+  const ripples = waterRipples(map.width, map.height);
   const shoreline = map.shoreline.map(points => `
     <polyline points="${points}" fill="none" stroke="var(--map-land)" stroke-width="${map._strokeWide || 50}" stroke-linecap="round" stroke-linejoin="round"></polyline>
   `).join("");
@@ -311,7 +337,7 @@ function renderLakeMap(map) {
   return `
     <div class="map-card-canvas">
       <svg width="${map.width}" height="${map.height}" viewBox="0 0 ${map.width} ${map.height}" role="img" aria-label="Stylized map of ${esc(map.water || "the lake")}">
-        ${shoreline}${shorelineEdge}${heatZones}${dots}${callouts}
+        ${ripples}${shoreline}${shorelineEdge}${heatZones}${dots}${callouts}
       </svg>
     </div>
     <div class="chart-legend">${legend}</div>
