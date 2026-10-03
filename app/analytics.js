@@ -274,25 +274,41 @@ function buildDepthAtCatch(catches) {
 // water's coordinate instead of being dropped from the map entirely.
 // Catches with neither (no GPS fix and no water tagged) still can't be
 // plotted — there's genuinely nothing to place them with.
-function buildMap(catches, waters) {
+// filterKey: a chip's key ("All", a water name, or "Untagged") to scope
+// the map to one location; omit (or pass an unknown key) for all waters
+// combined. Chips always list every location regardless of the current
+// filter, so the caller can rebuild the map for whichever one gets
+// clicked next — see wireMapChips() in components.js.
+function buildMap(catches, waters, filterKey) {
   const watersById = new Map(waters.map(w => [w.id, w]));
-  const withCoords = catches
+  const withCoordsAll = catches
     .map(c => {
       const water = c.water_id ? watersById.get(c.water_id) : null;
       const lat = c.latitude != null ? c.latitude : (water ? water.latitude : null);
       const lng = c.longitude != null ? c.longitude : (water ? water.longitude : null);
-      return { ...c, _mapLat: lat, _mapLng: lng };
+      return { ...c, _mapLat: lat, _mapLng: lng, _groupKey: c._waterName || "Untagged" };
     })
     .filter(c => c._mapLat != null && c._mapLng != null);
   const width = 580, height = 300, pad = 40;
 
-  if (withCoords.length < 2) {
+  if (withCoordsAll.length < 2) {
     return {
       water: waters[0]?.name || "your water",
-      sub: withCoords.length ? "Log a few more catches with a water or GPS tagged to map them" : "Tag a water (or allow location) on a catch to map it",
+      sub: withCoordsAll.length ? "Log a few more catches with a water or GPS tagged to map them" : "Tag a water (or allow location) on a catch to map it",
       width, height, shoreline: [], dots: [], callouts: [], legend: [{ color: "var(--accent)", label: "Your catches" }], chips: [],
     };
   }
+
+  const groupCounts = new Map();
+  for (const c of withCoordsAll) groupCounts.set(c._groupKey, (groupCounts.get(c._groupKey) || 0) + 1);
+  const sortedGroups = Array.from(groupCounts.entries()).sort((a, b) => b[1] - a[1]);
+  const effectiveFilter = filterKey && groupCounts.has(filterKey) ? filterKey : "All";
+  const chips = [
+    { label: `All waters · ${withCoordsAll.length}`, key: "All", active: effectiveFilter === "All" },
+    ...sortedGroups.map(([name, n]) => ({ label: `${name} · ${n}`, key: name, active: effectiveFilter === name })),
+  ];
+
+  const withCoords = effectiveFilter === "All" ? withCoordsAll : withCoordsAll.filter(c => c._groupKey === effectiveFilter);
 
   const lats = withCoords.map(c => c._mapLat), lngs = withCoords.map(c => c._mapLng);
   const minLat = Math.min(...lats), maxLat = Math.max(...lats);
@@ -316,18 +332,8 @@ function buildMap(catches, waters) {
     return { cx: Math.round(x), cy: Math.round(y), r: cl.n > 1 ? 14 : 9, label: cl.n > 1 ? String(cl.n) : undefined };
   });
 
-  const waterCounts = mode(withCoords.map(c => c._waterName).filter(Boolean));
-  const watersGrouped = new Map();
-  for (const c of withCoords) {
-    const name = c._waterName || "Untagged";
-    watersGrouped.set(name, (watersGrouped.get(name) || 0) + 1);
-  }
-  const chips = Array.from(watersGrouped.entries())
-    .sort((a, b) => b[1] - a[1])
-    .map(([label, n], i) => ({ label: `${label} · ${n}`, active: i === 0 }));
-
   return {
-    water: waterCounts.value || waters[0]?.name || "your waters",
+    water: effectiveFilter === "All" ? (waters[0]?.name || "your waters") : effectiveFilter,
     sub: `${withCoords.length} fish · ${clusters.size} spot${clusters.size === 1 ? "" : "s"} · stylized map`,
     width, height, shoreline: [], dots, callouts: [],
     legend: [{ color: "var(--accent)", label: "Your catches" }],
@@ -415,5 +421,9 @@ function buildMyCatchesData(catches, waters) {
     conditions: buildConditions(annotated),
     catchLog: buildCatchLog(annotated),
     warnCallout: buildWarnCallout(annotated),
+    // Exposed so the page can rebuild just the map (buildMap(annotated,
+    // waters, key)) when a location chip is clicked, without re-running
+    // every other builder above.
+    _annotated: annotated,
   };
 }

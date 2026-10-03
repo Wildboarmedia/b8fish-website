@@ -90,10 +90,13 @@ function renderHeroInsight(hero) {
 }
 
 // ---------- filter / quick chips ----------
+// f.key is optional — set it when the chip needs to be wired up to do
+// something on click (see wireMapChips below); omit it for the purely
+// decorative filter rows that don't do anything yet.
 function renderFilterChips(filters) {
   return `
     <div class="filter-row">
-      ${filters.map(f => `<button class="btn btn-filter${f.active ? " is-active" : ""}">${esc(f.label)}</button>`).join("")}
+      ${filters.map(f => `<button class="btn btn-filter${f.active ? " is-active" : ""}"${f.key != null ? ` data-key="${esc(f.key)}"` : ""}>${esc(f.label)}</button>`).join("")}
     </div>
   `;
 }
@@ -272,6 +275,20 @@ function renderCatchLogTable(rows) {
       </table>
     </div>
   `;
+}
+
+// Wires a map's location chips (rendered by renderFilterChips with f.key
+// set on each item — see buildMap's chips output). onSelect(key) is
+// called with the clicked chip's key; the page script owns rebuilding
+// and re-rendering the map + chips for that key (see my-catches.html's
+// renderMap()). Re-call this after every re-render, since the chips'
+// own HTML (and therefore their listeners) gets replaced each time.
+function wireMapChips(mountId, onSelect) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+  mount.querySelectorAll(".btn-filter[data-key]").forEach(btn => {
+    btn.addEventListener("click", () => onSelect(btn.dataset.key));
+  });
 }
 
 // Wires catch-log rows (rendered by renderCatchLogTable above) so clicking
