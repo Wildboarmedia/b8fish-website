@@ -180,7 +180,17 @@
 .data-table tr.is-clickable:hover td, .data-table tr.is-clickable:focus-visible td { background: var(--bg-surface-2); }
 
 /* ---------- stylized map ---------- */
-.map-card-canvas { background: var(--bg-surface-3); border-radius: var(--radius-lg); padding: 16px; display: flex; justify-content: center; }
+/* Ambient "water" treatment, not a literal coastline — we don't have
+   real shoreline data for an arbitrary real-world lat/lng, so faking a
+   lake outline would be misleading. Soft glows read as water/depth
+   without claiming a specific shape. */
+.map-card-canvas {
+  background:
+    radial-gradient(ellipse 60% 50% at 28% 22%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+    radial-gradient(ellipse 55% 45% at 72% 78%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 70%),
+    var(--bg-surface-3);
+  border-radius: var(--radius-lg); padding: 16px; display: flex; justify-content: center;
+}
 .map-card-canvas svg { max-width: 100%; height: auto; }
 .chip-row { display: flex; gap: 10px; flex-wrap: wrap; }
 
