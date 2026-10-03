@@ -31,10 +31,7 @@ function renderHeader(activeRoute, userEmail) {
     <header class="app-header">
       <div class="header-left">
         <a href="my-catches.html" class="brand">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M3 12c3-5 9-6 13-3l5-3v12l-5-3c-4 3-10 2-13-3z"></path>
-            <circle cx="8" cy="11" r="0.8"></circle>
-          </svg>
+          <img src="../assets/nav-logo.png" alt="" width="36" height="36" />
           b8fish
         </a>
         <nav class="main-nav" aria-label="Main">${nav}</nav>
