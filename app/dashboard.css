@@ -176,6 +176,8 @@
 .data-table tr:last-child td { border-bottom: none; }
 .lead-dot { display: inline-block; width: 8px; height: 8px; border-radius: 4px; background: var(--accent); margin-right: 8px; }
 .data-table td .time-sub { color: var(--text-secondary); margin-left: 4px; }
+.data-table tr.is-clickable { cursor: pointer; }
+.data-table tr.is-clickable:hover td, .data-table tr.is-clickable:focus-visible td { background: var(--bg-surface-2); }
 
 /* ---------- stylized map ---------- */
 .map-card-canvas { background: var(--bg-surface-3); border-radius: var(--radius-lg); padding: 16px; display: flex; justify-content: center; }

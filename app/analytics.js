@@ -264,19 +264,37 @@ function buildDepthAtCatch(catches) {
 // pixel space, cluster catches that round to the same ~3-decimal
 // coordinate into one dot with a count label — mirrors renderLakeMap's
 // existing {cx,cy,r,label} shape.
+//
+// Most catches never get their own precise GPS fix — the app only sets
+// Catch.latitude/longitude when a location fix already happened to be
+// ready at the instant of a one-tap log, and that's best-effort, not
+// guaranteed (no permission, or the fix just hadn't resolved yet). Every
+// tagged Water, by contrast, has a real non-optional coordinate set once
+// when it was added — so a catch missing its own fix falls back to its
+// water's coordinate instead of being dropped from the map entirely.
+// Catches with neither (no GPS fix and no water tagged) still can't be
+// plotted — there's genuinely nothing to place them with.
 function buildMap(catches, waters) {
-  const withCoords = catches.filter(c => c.latitude != null && c.longitude != null);
+  const watersById = new Map(waters.map(w => [w.id, w]));
+  const withCoords = catches
+    .map(c => {
+      const water = c.water_id ? watersById.get(c.water_id) : null;
+      const lat = c.latitude != null ? c.latitude : (water ? water.latitude : null);
+      const lng = c.longitude != null ? c.longitude : (water ? water.longitude : null);
+      return { ...c, _mapLat: lat, _mapLng: lng };
+    })
+    .filter(c => c._mapLat != null && c._mapLng != null);
   const width = 580, height = 300, pad = 40;
 
   if (withCoords.length < 2) {
     return {
       water: waters[0]?.name || "your water",
-      sub: withCoords.length ? "Log a few more GPS-tagged catches to map them" : "No GPS-tagged catches yet",
+      sub: withCoords.length ? "Log a few more catches with a water or GPS tagged to map them" : "Tag a water (or allow location) on a catch to map it",
       width, height, shoreline: [], dots: [], callouts: [], legend: [{ color: "var(--accent)", label: "Your catches" }], chips: [],
     };
   }
 
-  const lats = withCoords.map(c => c.latitude), lngs = withCoords.map(c => c.longitude);
+  const lats = withCoords.map(c => c._mapLat), lngs = withCoords.map(c => c._mapLng);
   const minLat = Math.min(...lats), maxLat = Math.max(...lats);
   const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
   const latSpan = maxLat - minLat || 0.001, lngSpan = maxLng - minLng || 0.001;
@@ -288,8 +306,8 @@ function buildMap(catches, waters) {
 
   const clusters = new Map();
   for (const c of withCoords) {
-    const key = `${c.latitude.toFixed(3)},${c.longitude.toFixed(3)}`;
-    if (!clusters.has(key)) clusters.set(key, { lat: c.latitude, lng: c.longitude, n: 0 });
+    const key = `${c._mapLat.toFixed(3)},${c._mapLng.toFixed(3)}`;
+    if (!clusters.has(key)) clusters.set(key, { lat: c._mapLat, lng: c._mapLng, n: 0 });
     clusters.get(key).n++;
   }
 
@@ -347,6 +365,7 @@ function buildCatchLog(catches) {
       ? [c.conditions.sky, c.conditions.airTempF].filter(Boolean).join(" · ")
       : "—";
     return {
+      id: c.id,
       date: formatDateShort(d),
       time: formatTimeShort(d),
       species: c.species,
@@ -368,6 +387,7 @@ function buildWarnCallout(catches) {
       ? `${missing.length} catch${missing.length === 1 ? " is" : "es are"} missing length, weight or depth. Filling them in sharpens your patterns.`
       : "All your catches have length, weight, or depth logged — nice.",
     cta: "Complete catches",
+    firstMissingId: missing.length ? missing[0].id : null,
     _hide: missing.length === 0,
   };
 }

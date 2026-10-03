@@ -18,7 +18,7 @@ function renderHeader(activeRoute, userEmail) {
   const navItems = [
     { label: "My Catches", href: "my-catches.html", route: "my-catches" },
     { label: "Patterns", href: "#", route: "patterns" },
-    { label: "Lures", href: "#", route: "lures" },
+    { label: "Lures", href: "lures.html", route: "lures" },
     { label: "Lake Intel", href: "lake-intel.html", route: "lake-intel" },
   ];
   const nav = navItems.map(item => `
@@ -175,6 +175,45 @@ function renderHbarList(items) {
   `;
 }
 
+// ---------- lures inventory table (the real Lures page) ----------
+// Distinct from renderLureTable() above, which shows per-lure *catch
+// performance* stats on My Catches — this shows the full real tackle-box
+// inventory as synced from the app (no photos: those never sync; no
+// commerce/affiliate fields yet: deliberately out of scope for now).
+function renderLuresTable(lures) {
+  return `
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Lure</th><th>Color</th><th>Type</th><th>Size</th><th>Weight</th>
+            <th>Hooks</th><th>Depth range</th><th>Diving depth</th>
+            <th class="num">Stock</th><th>Tied on</th><th>Notes</th><th>Added</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lures.map(l => `
+            <tr>
+              <td class="strong">${l.isTiedOn ? '<span class="lead-dot"></span>' : ""}${esc(l.brand)} ${esc(l.modelName)}</td>
+              <td class="muted">${esc(l.colorPattern)}</td>
+              <td class="muted">${esc(l.type)}</td>
+              <td class="muted">${esc(l.size)}</td>
+              <td class="muted">${esc(l.weight)}</td>
+              <td class="muted">${esc(l.hooksDescription)}</td>
+              <td class="muted">${esc(l.depthRange)}</td>
+              <td class="muted">${esc(l.divingDepth)}</td>
+              <td class="num">${esc(l.stockCount)}</td>
+              <td class="muted">${l.isTiedOn ? "Yes" : "—"}</td>
+              <td class="muted">${esc(l.patternNotes || "—")}</td>
+              <td class="mono muted">${esc(l.dateAddedDisplay)}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
 // ---------- lure performance table ----------
 function renderLureTable(lures) {
   return `
@@ -204,6 +243,8 @@ function renderLureTable(lures) {
 }
 
 // ---------- catch log table ----------
+// Rows are clickable through to edit-catch.html — call wireCatchLogRows()
+// after mounting this (see components.js bottom) to wire the clicks.
 function renderCatchLogTable(rows) {
   return `
     <div class="table-scroll">
@@ -216,7 +257,7 @@ function renderCatchLogTable(rows) {
         </thead>
         <tbody>
           ${rows.map(r => `
-            <tr>
+            <tr class="is-clickable" data-catch-id="${esc(r.id)}" tabindex="0">
               <td class="mono">${esc(r.date)}<span class="time-sub mono">${esc(r.time)}</span></td>
               <td class="strong">${esc(r.species)}</td>
               <td class="mono">${esc(r.size)}</td>
@@ -231,6 +272,16 @@ function renderCatchLogTable(rows) {
       </table>
     </div>
   `;
+}
+
+// Wires catch-log rows (rendered by renderCatchLogTable above) so clicking
+// or Enter-ing a row opens that catch's edit page. Call after mounting.
+function wireCatchLogRows() {
+  document.querySelectorAll("table.data-table tr.is-clickable[data-catch-id]").forEach(row => {
+    const go = () => { location.href = `edit-catch.html?id=${encodeURIComponent(row.dataset.catchId)}`; };
+    row.addEventListener("click", go);
+    row.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
+  });
 }
 
 // ---------- stylized lake map (shared by My Catches + Lake Intel) ----------
@@ -284,10 +335,11 @@ function renderTileGrid(tiles, cols) {
 
 // ---------- warn callout ----------
 function renderWarnCallout(data) {
+  const href = data.firstMissingId ? `edit-catch.html?id=${encodeURIComponent(data.firstMissingId)}` : "#";
   return `
     <div class="callout-warn">
       <span>${esc(data.text)}</span>
-      <button class="btn">${esc(data.cta)}</button>
+      <a class="btn" href="${href}">${esc(data.cta)}</a>
     </div>
   `;
 }

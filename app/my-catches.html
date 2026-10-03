@@ -6,8 +6,8 @@
 <title>My Catches · b8fish</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="theme.css" />
-<link rel="stylesheet" href="dashboard.css" />
+<link rel="stylesheet" href="theme.css?v=6" />
+<link rel="stylesheet" href="dashboard.css?v=6" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="app-body">
@@ -96,12 +96,12 @@
     </main>
   </div>
 
-  <script src="config.js"></script>
-  <script src="session.js"></script>
-  <script src="data.js"></script>
-  <script src="components.js"></script>
-  <script src="my-catches-data.js"></script>
-  <script src="analytics.js"></script>
+  <script src="config.js?v=6"></script>
+  <script src="session.js?v=6"></script>
+  <script src="data.js?v=6"></script>
+  <script src="components.js?v=6"></script>
+  <script src="my-catches-data.js?v=6"></script>
+  <script src="analytics.js?v=6"></script>
   <script>
     (async function () {
       const session = await requireSession();
@@ -132,6 +132,7 @@
       document.getElementById("conditions-mount").innerHTML = renderTileGrid(d.conditions, 2);
       document.getElementById("catchlog-sub-mount").textContent = d.catchLog.sub;
       document.getElementById("catchlog-mount").innerHTML = renderCatchLogTable(d.catchLog.rows);
+      wireCatchLogRows();
       document.getElementById("warn-mount").innerHTML = d.warnCallout._hide ? "" : renderWarnCallout(d.warnCallout);
     })();
   </script>
