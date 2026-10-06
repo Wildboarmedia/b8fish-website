@@ -6,8 +6,8 @@
 <title>My Catches · b8fish</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="theme.css?v=10" />
-<link rel="stylesheet" href="dashboard.css?v=10" />
+<link rel="stylesheet" href="theme.css?v=12" />
+<link rel="stylesheet" href="dashboard.css?v=12" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="app-body">
@@ -27,60 +27,94 @@
 
       <div id="hero-mount"></div>
 
-      <div class="split-row">
-        <section class="panel flex-main">
-          <div class="panel-head">
-            <h2>Patterns emerging</h2>
-            <div class="panel-note">Confidence grows as you log more catches</div>
-          </div>
-          <div id="patterns-mount"></div>
-        </section>
-        <section class="panel flex-side">
-          <div class="panel-head">
-            <h2>Bite clock</h2>
-            <div class="panel-note">Catches by hour of day, all waters</div>
-          </div>
-          <div id="bite-clock-mount"></div>
-        </section>
+      <div class="filter-groups">
+        <div class="filter-group"><span>Trip</span><div id="trip-chips-mount"></div></div>
+        <div class="filter-group"><span>Species</span><div id="species-chips-mount"></div></div>
       </div>
+
+      <section class="panel">
+        <div class="panel-head row">
+          <div>
+            <h2>Depth through the day</h2>
+            <div class="panel-note" id="column-insight-mount"></div>
+          </div>
+          <div class="filter-row" role="group" aria-label="Time axis">
+            <button class="btn btn-filter" id="xmode-clock" type="button">Clock time</button>
+            <button class="btn btn-filter" id="xmode-sunrise" type="button">After sunrise</button>
+          </div>
+        </div>
+        <div class="table-scroll" id="water-column-mount"></div>
+        <div class="chart-legend" id="water-column-legend-mount"></div>
+      </section>
 
       <div class="split-row">
         <section class="panel flex-main">
           <div class="panel-head">
-            <h2>Your lures</h2>
-            <div class="panel-note">Ranked by catches</div>
+            <h2>Lures</h2>
+            <div class="panel-note">Catches, average weight and depth range per lure</div>
           </div>
           <div id="lures-mount"></div>
         </section>
-        <div class="side-stack">
-          <section class="panel">
-            <div class="panel-head"><h2>Species mix</h2></div>
-            <div id="species-mount"></div>
-          </section>
-          <section class="panel">
-            <div class="panel-head">
-              <h2>Depth at catch</h2>
-              <div class="panel-note" id="depth-sub-mount"></div>
-            </div>
-            <div id="depth-mount"></div>
-          </section>
-        </div>
+        <section class="panel flex-side">
+          <div class="panel-head"><h2>Depth</h2></div>
+          <div id="depth-mount"></div>
+          <div class="panel-note" id="depth-sub-mount"></div>
+        </section>
       </div>
+
+      <div class="equal-row">
+        <section class="panel">
+          <div class="panel-head"><h2>Lure by depth</h2></div>
+          <div id="heat-lure-mount"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Retrieve by depth</h2>
+            <div class="panel-note">Dashed cells are combinations with no catch logged yet</div>
+          </div>
+          <div id="heat-retrieve-mount"></div>
+        </section>
+      </div>
+
+      <div class="equal-row">
+        <section class="panel">
+          <div class="panel-head"><h2>Retrieve</h2></div>
+          <div id="retrieve-mount"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head" id="structure-head-mount"><h2>Structure</h2></div>
+          <div id="structure-mount"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><h2>Time of day</h2></div>
+          <div id="daypart-mount"></div>
+        </section>
+      </div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2 id="map-title-mount">Where you catch</h2>
+          <div class="panel-note" id="map-sub-mount"></div>
+        </div>
+        <div id="map-mount"></div>
+        <div class="chip-row" id="map-chips-mount"></div>
+      </section>
 
       <div class="split-row">
         <section class="panel flex-main">
-          <div class="panel-head">
-            <h2 id="map-title-mount">Where you catch</h2>
-            <div class="panel-note" id="map-sub-mount"></div>
-          </div>
-          <div id="map-mount"></div>
-          <div class="chip-row" id="map-chips-mount"></div>
+          <div class="panel-head"><h2>Weather at the catch</h2></div>
+          <div id="weather-mount"></div>
         </section>
         <section class="panel flex-side narrow">
-          <div class="panel-head"><h2>Conditions when you catch</h2></div>
-          <div id="conditions-mount"></div>
+          <div class="panel-head"><h2>Size</h2></div>
+          <div id="size-mount"></div>
         </section>
       </div>
+
+      <section class="panel">
+        <div class="panel-head"><h2>Trips</h2></div>
+        <div id="trips-mount"></div>
+      </section>
 
       <section class="panel">
         <div class="panel-head row">
@@ -95,13 +129,15 @@
       </section>
     </main>
   </div>
+  <div id="tip" role="status"></div>
 
-  <script src="config.js?v=10"></script>
-  <script src="session.js?v=10"></script>
-  <script src="data.js?v=10"></script>
-  <script src="components.js?v=10"></script>
-  <script src="my-catches-data.js?v=10"></script>
-  <script src="analytics.js?v=10"></script>
+  <script src="config.js?v=12"></script>
+  <script src="session.js?v=12"></script>
+  <script src="data.js?v=12"></script>
+  <script src="components.js?v=12"></script>
+  <script src="my-catches-data.js?v=12"></script>
+  <script src="analytics.js?v=12"></script>
+  <script src="catches-analytics.js?v=12"></script>
   <script>
     (async function () {
       const session = await requireSession();
@@ -110,7 +146,7 @@
       const ok = await requireIsPro(session.user);
       if (!ok) return; // requireIsPro already rendered the upgrade block
 
-      const { catches, waters } = await loadMyCatchesRaw(supabaseClient, session.user.id);
+      const { catches, waters, lakes } = await loadMyCatchesRaw(supabaseClient, session.user.id);
       const d = buildMyCatchesData(catches, waters);
 
       document.getElementById("header-mount").innerHTML = renderHeader("my-catches", session.user.email);
@@ -119,12 +155,7 @@
       document.getElementById("filters-mount").innerHTML = renderFilterChips(d.filters);
       document.getElementById("kpi-mount").innerHTML = renderKpiGrid(d.kpis);
       document.getElementById("hero-mount").innerHTML = renderHeroInsight(d.hero);
-      document.getElementById("patterns-mount").innerHTML = renderPatternGrid(d.patterns);
-      document.getElementById("bite-clock-mount").innerHTML = renderBiteClock(d.biteClock);
-      document.getElementById("lures-mount").innerHTML = renderLureTable(d.lures);
-      document.getElementById("species-mount").innerHTML = renderHbarList(d.speciesMix);
-      document.getElementById("depth-sub-mount").textContent = d.depthAtCatch.sub;
-      document.getElementById("depth-mount").innerHTML = renderHbarList(d.depthAtCatch.bins);
+
       function renderMap(filterKey) {
         const mapData = buildMap(d._annotated, waters, filterKey);
         document.getElementById("map-title-mount").textContent = "Where you catch: " + mapData.water;
@@ -134,11 +165,89 @@
         wireMapChips("map-chips-mount", renderMap);
       }
       renderMap();
-      document.getElementById("conditions-mount").innerHTML = renderTileGrid(d.conditions, 2);
+
       document.getElementById("catchlog-sub-mount").textContent = d.catchLog.sub;
       document.getElementById("catchlog-mount").innerHTML = renderCatchLogTable(d.catchLog.rows);
       wireCatchLogRows();
       document.getElementById("warn-mount").innerHTML = d.warnCallout._hide ? "" : renderWarnCallout(d.warnCallout);
+
+      // ---- the depth/lure/weather analysis suite, ported from the
+      // reference prototype — trip/species/time-axis filterable, same as
+      // the prototype's own state object ----
+      const pageState = { trip: "all", species: "all", xMode: "clock" };
+
+      function renderAnalysis() {
+        const p = buildCatchesPageState(catches, waters, lakes, pageState);
+
+        document.getElementById("trip-chips-mount").innerHTML = renderFilterChips([
+          { label: "All trips", key: "all", active: pageState.trip === "all" },
+          ...p.trips.map(t => ({ label: dayShort(t), key: t, active: pageState.trip === t })),
+        ]);
+        wireMapChips("trip-chips-mount", key => { pageState.trip = key; renderAnalysis(); window.scrollTo({ top: 0 }); });
+
+        document.getElementById("species-chips-mount").innerHTML = renderFilterChips([
+          { label: "All", key: "all", active: pageState.species === "all" },
+          ...p.species.map(s => ({ label: sentenceCase(s), key: s, active: pageState.species === s })),
+        ]);
+        wireMapChips("species-chips-mount", key => { pageState.species = key; renderAnalysis(); });
+
+        document.getElementById("xmode-clock").classList.toggle("is-active", pageState.xMode === "clock");
+        document.getElementById("xmode-sunrise").classList.toggle("is-active", pageState.xMode === "sunrise");
+
+        document.getElementById("column-insight-mount").textContent = buildColumnInsight(p.rows);
+        document.getElementById("water-column-mount").innerHTML = p.rows.length
+          ? renderWaterColumn(p.rows, pageState.xMode)
+          : `<p class="muted">No catches match this filter.</p>`;
+        wireWaterColumnTooltip("water-column-mount", p.rows);
+        const speciesInView = uniq(p.rows.map(r => r.species));
+        document.getElementById("water-column-legend-mount").innerHTML =
+          speciesInView.map(s => `<span class="key"><span class="swatch" style="background:${speciesColor(s)}"></span>${esc(sentenceCase(s))}</span>`).join("") +
+          `<span class="key">Bigger dot, heavier fish</span><span class="key">Hollow dot, no weight logged</span>` +
+          `<span class="key"><span class="swatch" style="background:none;border:2px solid var(--accent-hover)"></span>Heaviest in view</span>`;
+
+        document.getElementById("lures-mount").innerHTML = renderLuresDepthTable(p.rows, p.yMax);
+
+        const depthRows = p.rows.filter(r => has(r.depth_ft));
+        const depthItems = DEPTH_BANDS.map((b, i) => {
+          const inBand = depthRows.filter(r => bandOf(r.depth_ft) === i);
+          const w = inBand.map(r => r.weight_lbs).filter(has);
+          return { name: bandLabel(b), n: inBand.length, valueLabel: inBand.length ? `${inBand.length}${w.length ? " · avg " + lb(mean(w)) : ""}` : "none logged" };
+        });
+        const topDepthIdx = depthItems.reduce((best, it, i) => (it.n > depthItems[best].n ? i : best), 0);
+        if (depthItems[topDepthIdx].n > 0) depthItems[topDepthIdx].tone = "lead";
+        document.getElementById("depth-mount").innerHTML = renderHbarList(depthItems);
+        document.getElementById("depth-sub-mount").textContent = depthRows.length < p.rows.length ? `${p.rows.length - depthRows.length} catches have no depth logged.` : "";
+
+        const luresSorted = [...groupBy(p.rows, r => r.lure_display_name_snapshot).entries()].sort((a, b) => b[1].length - a[1].length).map(([k]) => k);
+        const depthCols = DEPTH_BANDS.map(b => bandShort(b) + " ft");
+        document.getElementById("heat-lure-mount").innerHTML = renderHeatmap({
+          timeBlocks: depthCols,
+          days: luresSorted.map(name => ({ label: name, values: DEPTH_BANDS.map((_, i) => p.rows.filter(r => r.lure_display_name_snapshot === name && has(r.depth_ft) && bandOf(r.depth_ft) === i).length) })),
+        });
+        document.getElementById("heat-retrieve-mount").innerHTML = renderHeatmap({
+          timeBlocks: depthCols,
+          days: RETRIEVES.map(name => ({ label: name, values: DEPTH_BANDS.map((_, i) => p.rows.filter(r => r.retrieve_style === name && has(r.depth_ft) && bandOf(r.depth_ft) === i).length) })),
+        });
+
+        document.getElementById("retrieve-mount").innerHTML = renderHbarList(byValue(p.rows, r => r.retrieve_style, RETRIEVES).map(i => ({ name: i.label, n: i.rows.length })));
+        const structureRows = p.rows.filter(r => r.structure_type);
+        document.getElementById("structure-head-mount").innerHTML = `<h2>Structure</h2><div class="panel-note">${structureRows.length} of ${p.rows.length} logged</div>`;
+        document.getElementById("structure-mount").innerHTML = structureRows.length
+          ? renderHbarList(byValue(structureRows, r => r.structure_type).map(i => ({ name: i.label, n: i.rows.length })))
+          : `<p class="muted">Add structure when you log a catch to see it here.</p>`;
+        document.getElementById("daypart-mount").innerHTML = renderHbarList(DAYPARTS.map(([label], i) => ({ name: label, n: p.rows.filter(r => daypartOf(r) === i).length })));
+
+        document.getElementById("weather-mount").innerHTML = renderWeatherMulti(p.rows);
+        document.getElementById("size-mount").innerHTML = renderSizePlot(p.rows);
+
+        document.getElementById("trips-mount").innerHTML = renderTripsTable(p.bySpeciesOnly);
+        wireTripRows("trips-mount", trip => { pageState.trip = trip; renderAnalysis(); window.scrollTo({ top: 0 }); });
+      }
+
+      document.getElementById("xmode-clock").onclick = () => { pageState.xMode = "clock"; renderAnalysis(); };
+      document.getElementById("xmode-sunrise").onclick = () => { pageState.xMode = "sunrise"; renderAnalysis(); };
+
+      renderAnalysis();
     })();
   </script>
 </body>

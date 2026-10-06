@@ -80,7 +80,7 @@ function renderHeroInsight(hero) {
       </div>
       <div class="hero-actions">
         <a href="${hero.primaryCta.href}" class="btn btn-accent btn-lg">${esc(hero.primaryCta.label)}</a>
-        <button class="btn btn-outline-accent">${esc(hero.secondaryCta.label)}</button>
+        <a href="${hero.secondaryCta.href}" class="btn btn-outline-accent">${esc(hero.secondaryCta.label)}</a>
       </div>
     </section>
   `;
@@ -94,61 +94,6 @@ function renderFilterChips(filters) {
   return `
     <div class="filter-row">
       ${filters.map(f => `<button class="btn btn-filter${f.active ? " is-active" : ""}"${f.key != null ? ` data-key="${esc(f.key)}"` : ""}>${esc(f.label)}</button>`).join("")}
-    </div>
-  `;
-}
-
-// ---------- patterns emerging ----------
-function renderPatternGrid(patterns) {
-  return `
-    <div class="pattern-grid">
-      ${patterns.map(p => `
-        <div class="pattern-card">
-          <div class="top-row">
-            <div class="title">${esc(p.title)}</div>
-            <div class="metric">${esc(p.metric)}</div>
-          </div>
-          <div class="desc">${esc(p.desc)}</div>
-          ${renderConfidenceMeter(p.filled, p.conf)}
-        </div>
-      `).join("")}
-    </div>
-  `;
-}
-
-function renderConfidenceMeter(filled, label) {
-  const segs = [0, 1, 2, 3].map(i => `<span class="${i < filled ? "is-filled" : ""}"></span>`).join("");
-  return `
-    <div class="confidence-meter">
-      <div class="segments">${segs}</div>
-      <span class="conf-label">${esc(label)}</span>
-    </div>
-  `;
-}
-
-// ---------- bite clock ----------
-function renderBiteClock(bc) {
-  const max = Math.max(...bc.values, 1);
-  const cols = bc.hours.map((h, i) => {
-    const v = bc.values[i];
-    const isPrime = bc.primeHours.includes(h);
-    const barClass = v === 0 ? "" : (isPrime ? "is-prime" : "is-other");
-    const height = v === 0 ? 3 : Math.max(10, Math.round((v / max) * 180));
-    const tick = bc.tickHours.includes(h) ? h : "";
-    return `
-      <div class="col">
-        <span class="cap">${v > 0 ? v : ""}</span>
-        <div class="bar ${barClass}" style="height:${height}px" title="${esc(h)} · ${v} catches"></div>
-        <span class="tick">${esc(tick)}</span>
-      </div>
-    `;
-  }).join("");
-
-  return `
-    <div class="bite-clock">${cols}</div>
-    <div class="chart-legend">
-      <span class="key"><span class="swatch" style="background:var(--accent)"></span>Your prime window, 8–noon</span>
-      <span class="key"><span class="swatch" style="background:var(--series-blue)"></span>Other catches</span>
     </div>
   `;
 }
@@ -206,34 +151,6 @@ function renderLuresTable(lures) {
               <td class="muted">${l.isTiedOn ? "Yes" : "—"}</td>
               <td class="muted">${esc(l.patternNotes || "—")}</td>
               <td class="mono muted">${esc(l.dateAddedDisplay)}</td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-// ---------- lure performance table ----------
-function renderLureTable(lures) {
-  return `
-    <div class="table-scroll">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Lure</th><th class="num">Fish</th><th class="num">Avg len</th>
-            <th>Best fish</th><th>Water</th><th>Retrieve</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${lures.map(l => `
-            <tr>
-              <td class="strong">${l.lead ? '<span class="lead-dot"></span>' : ""}${esc(l.name)}</td>
-              <td class="num">${esc(l.fish)}</td>
-              <td class="num muted">${esc(l.avgLen)}</td>
-              <td>${esc(l.bestFish)}</td>
-              <td class="muted">${esc(l.water)}</td>
-              <td class="muted">${esc(l.retrieve)}</td>
             </tr>
           `).join("")}
         </tbody>
@@ -358,21 +275,6 @@ function renderLakeMap(map) {
   `;
 }
 
-// ---------- info tile grid (conditions / bite-turn-on / compare) ----------
-function renderTileGrid(tiles, cols) {
-  return `
-    <div class="tile-grid cols-${cols}">
-      ${tiles.map(t => `
-        <div class="info-tile">
-          <div class="tile-label">${esc(t.label)}</div>
-          <div class="tile-value">${esc(t.value)}</div>
-          <div class="tile-sub">${esc(t.sub)}</div>
-        </div>
-      `).join("")}
-    </div>
-  `;
-}
-
 // ---------- warn callout ----------
 function renderWarnCallout(data) {
   const href = data.firstMissingId ? `edit-catch.html?id=${encodeURIComponent(data.firstMissingId)}` : "#";
@@ -400,13 +302,18 @@ function renderLakeSearch(search) {
   `;
 }
 
-// ---------- Lake Intel: bite window heatmap ----------
+// ---------- heat grid (Lake Intel bite window; My Catches lure/retrieve
+// by depth) ----------
+// bw.days[].values entries of 0 draw as a dashed empty cell rather than a
+// faint-but-present fill — on My Catches that distinction is the point:
+// an empty cell is a combination never tried, not just a rare one.
 function renderHeatmap(bw) {
   const allValues = bw.days.flatMap(d => d.values);
   const max = Math.max(...allValues, 1);
   const colHeads = bw.timeBlocks.map(t => `<div class="col-head">${esc(t)}</div>`).join("");
   const rows = bw.days.map(day => {
     const cells = day.values.map(v => {
+      if (!v) return `<div class="cell empty" aria-label="none"></div>`;
       const opacity = 0.12 + (v / max) * 0.88;
       const textColor = opacity >= 0.7 ? "var(--bg-board)" : "var(--text-primary)";
       return `<div class="cell" style="background:rgba(145,132,217,${opacity.toFixed(2)});color:${textColor}">${v}</div>`;
@@ -415,6 +322,188 @@ function renderHeatmap(bw) {
   }).join("");
 
   return `<div class="heatmap"><div></div>${colHeads}${rows}</div>`;
+}
+
+// ---------- My Catches: depth through the day (the signature chart) ----------
+// Ported from waterColumn() in the reference prototype. xMode: "clock" or
+// "sunrise" (hours after sunrise). rows must have a numeric depth_ft to
+// be plotted; rows with no depth are silently skipped, same as the
+// prototype (a sparse/no-depth account just gets an empty panel below).
+function renderWaterColumn(rows, xMode) {
+  const pts = rows.filter(r => has(r.depth_ft));
+  if (!pts.length) return `<p class="muted" style="padding:24px 0;">No catches with a depth logged yet.</p>`;
+  const W = 1100, H = 430, L = 58, R = 70, T = 40, B = 16;
+  const xv = r => xMode === "clock" ? r.local_hour : r.local_hour - r.sunrise_hour;
+  const x0 = Math.floor(Math.min(...pts.map(xv)) - 0.25), x1 = Math.ceil(Math.max(...pts.map(xv)) + 0.25);
+  const yMax = Math.max(20, Math.ceil((Math.max(...pts.map(r => r.depth_ft)) + 2) / 5) * 5);
+  const X = v => L + (v - x0) / (x1 - x0) * (W - L - R), Y = d => T + d / yMax * (H - T - B);
+  const best = Math.max(...pts.map(r => r.weight_lbs || 0));
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Catches plotted by time of day and depth">
+    <defs><linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--bg-surface-2)"/><stop offset="1" stop-color="var(--bg-surface-3)"/></linearGradient></defs>
+    <rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" rx="10" fill="url(#water)"/>`;
+  for (let d = 0; d <= yMax; d += 5) {
+    s += `<text x="${L - 10}" y="${Y(d) + 4}" text-anchor="end">${d === 0 ? "Surface" : d + " ft"}</text>`;
+    if (d > 0 && d < yMax) s += `<line x1="${L}" x2="${W - R}" y1="${Y(d)}" y2="${Y(d)}" stroke="var(--border)" stroke-opacity=".55"/>`;
+  }
+  for (let h = x0; h <= x1; h++) {
+    const label = xMode === "clock" ? clockTime(h).replace(":00", "") : (h === 0 ? "Sunrise" : (h > 0 ? "+" : "") + h + " h");
+    s += `<text x="${X(h)}" y="${T - 12}" text-anchor="middle">${label}</text>
+          <line x1="${X(h)}" x2="${X(h)}" y1="${T}" y2="${T + 6}" stroke="var(--text-secondary)"/>`;
+  }
+  groupBy(pts, r => r.local_date).forEach((v) => {
+    if (v.length > 1) s += `<polyline fill="none" stroke="var(--text-primary)" stroke-opacity=".38" stroke-width="1.5" points="${v.map(r => X(xv(r)) + "," + Y(r.depth_ft)).join(" ")}"/>`;
+  });
+  pts.forEach(r => {
+    const c = speciesColor(r.species);
+    const rad = has(r.weight_lbs) ? 5 + 2.2 * r.weight_lbs : 5.5;
+    const isBest = has(r.weight_lbs) && r.weight_lbs === best;
+    if (isBest) s += `<circle cx="${X(xv(r))}" cy="${Y(r.depth_ft)}" r="${rad + 5}" fill="none" stroke="var(--accent-hover)" stroke-width="3"/>`;
+    s += `<circle class="dot" tabindex="0" data-id="${esc(r.id)}" cx="${X(xv(r))}" cy="${Y(r.depth_ft)}" r="${rad}"
+      fill="${has(r.weight_lbs) ? c : "var(--bg-surface)"}" fill-opacity=".92" stroke="${has(r.weight_lbs) ? "var(--bg-surface)" : c}" stroke-width="${has(r.weight_lbs) ? 1.5 : 2.5}"
+      aria-label="${esc(tipText(r).replace(/<[^>]+>/g, " "))}"/>`;
+  });
+  groupBy(pts, r => r.local_date).forEach((v, d) => {
+    const last = v[v.length - 1], px = X(xv(last)), py = Y(last.depth_ft), bw = 54, bh = 20;
+    const spots = [[px + 18, py + 5, "start"], [px - 18, py + 5, "end"], [px, py + 30, "middle"], [px, py - 20, "middle"]];
+    const clear = ([tx, ty, a]) => {
+      const x0b = a === "start" ? tx : a === "end" ? tx - bw : tx - bw / 2;
+      return tx > L + 30 && x0b + bw < W && ty > T + 14 && !pts.some(r => r !== last && X(xv(r)) > x0b - 12 && X(xv(r)) < x0b + bw + 12 && Math.abs(Y(r.depth_ft) - (ty - 5)) < bh);
+    };
+    const [tx, ty, a] = spots.find(clear) || spots[0];
+    s += `<text class="trip-label" x="${tx}" y="${ty}" text-anchor="${a}" paint-order="stroke" stroke="var(--bg-surface-2)" stroke-width="4" stroke-linejoin="round">${dayShort(d)}</text>`;
+  });
+  return s + `</svg>`;
+}
+
+// ---------- My Catches: lures table (catches, avg/biggest weight, depth
+// range it caught at) ----------
+function renderLuresDepthTable(rows, yMax) {
+  const g = [...groupBy(rows, r => r.lure_display_name_snapshot).entries()].sort((a, b) => b[1].length - a[1].length);
+  if (!g.length) return `<p class="muted">No catches in view.</p>`;
+  const top = Math.max(...g.map(([, v]) => v.length));
+  const body = g.map(([name, v]) => {
+    const w = v.map(r => r.weight_lbs).filter(has), d = v.map(r => r.depth_ft).filter(has);
+    const lo = d.length ? Math.min(...d) : null, hi = d.length ? Math.max(...d) : null;
+    return `<tr>
+      <td class="strong">${esc(name)}</td>
+      <td><div style="height:10px;background:var(--bg-surface-2);border-radius:5px;overflow:hidden;min-width:60px"><div style="height:100%;width:${v.length / top * 100}%;background:var(--accent);border-radius:5px"></div></div></td>
+      <td class="num">${v.length}</td>
+      <td class="num muted">${w.length ? lb(mean(w)) : "n/a"}</td>
+      <td class="num muted">${w.length ? lb(Math.max(...w)) : "n/a"}</td>
+      <td>${d.length ? `<div class="range" title="${ft(lo)} to ${ft(hi)}"><span style="left:${lo / yMax * 100}%;width:${Math.max(2, (hi - lo) / yMax * 100)}%"></span></div>` : ""}</td>
+      <td class="num muted">${d.length ? (lo === hi ? ft(lo) : trimNum(lo, 0) + "–" + ft(hi)) : ""}</td>
+    </tr>`;
+  }).join("");
+  return `<div class="table-scroll"><table class="data-table" style="min-width:620px">
+    <thead><tr><th>Lure</th><th colspan="2">Catches</th><th class="num">Avg weight</th><th class="num">Biggest</th><th colspan="2">Depth it caught at</th></tr></thead>
+    <tbody>${body}</tbody></table></div>
+    <p class="note" style="font-size:13px;color:var(--text-secondary);margin-top:10px;max-width:68ch;">This counts fish caught, so the lure you throw most will lead. b8fish does not yet know what you threw without a bite.</p>`;
+}
+
+// ---------- My Catches: weather at the catch (small multiples) ----------
+function renderWeatherMulti(rows) {
+  const w = rows.filter(r => has(r.sky));
+  if (!w.length) return `<p class="muted">No weather was saved for these catches.</p>`;
+  const tempBucket = r => Math.floor(r.air_temp_f / 10) * 10 + "s °F";
+  const moonBucket = r => r.moon_pct >= 90 ? "Near full (90%+)" : r.moon_pct >= 50 ? "50 to 89% lit" : "Under 50% lit";
+  const windBucket = r => r.wind_mph < 5 ? "Under 5 mph" : r.wind_mph < 10 ? "5 to 9 mph" : "10 mph and up";
+  const block = (title, fn, order) => {
+    const items = byValue(w, fn, order).map(i => ({ name: i.label, n: i.rows.length }));
+    return `<div><h3>${esc(title)}</h3>${renderHbarList(items)}</div>`;
+  };
+  return `<p class="muted" style="margin-bottom:4px;">${w.length} of ${rows.length} catches have weather</p>
+    <div class="weather-multi">
+      ${block("Sky", r => r.sky)}
+      ${block("Pressure trend", r => r.pressure_trend, ["Rising", "Steady", "Falling"])}
+      ${block("Wind speed", windBucket, ["Under 5 mph", "5 to 9 mph", "10 mph and up"])}
+      ${block("Wind from", r => r.wind_dir)}
+      ${block("Air temperature", tempBucket, uniq(w.map(tempBucket)).sort())}
+      ${block("Moon", moonBucket, ["Under 50% lit", "50 to 89% lit", "Near full (90%+)"])}
+    </div>`;
+}
+
+// ---------- My Catches: size (length by species, one dot per fish) ----------
+function renderSizePlot(rows) {
+  const m = rows.filter(r => has(r.length_in));
+  if (!m.length) return `<p class="muted">No lengths logged yet.</p>`;
+  const sp = [...groupBy(m, r => r.species).entries()].sort((a, b) => b[1].length - a[1].length);
+  const W = 380, rowH = 96, L = 20, R = 20, T = 6, H = T + sp.length * rowH + 30;
+  const lo = Math.floor(Math.min(...m.map(r => r.length_in)) - 1), hi = Math.ceil(Math.max(...m.map(r => r.length_in)) + 1);
+  const X = v => L + (v - lo) / (hi - lo) * (W - L - R);
+  let s = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;max-width:${W}px" role="img" aria-label="Length of each catch by species">`;
+  for (let v = lo; v <= hi; v += 2) s += `<text x="${X(v)}" y="${H - 6}" text-anchor="middle">${v} in</text><line x1="${X(v)}" x2="${X(v)}" y1="${T + 26}" y2="${H - 26}" stroke="var(--border)"/>`;
+  sp.forEach(([name, v], i) => {
+    const base = T + i * rowH + rowH - 18, col = speciesColor(name), seen = {};
+    const avg = mean(v.map(r => r.length_in));
+    s += `<text x="2" y="${T + i * rowH + 16}" style="fill:var(--text-primary);font-size:14px">${esc(sentenceCase(name))}, average ${inch(avg)}, longest ${inch(Math.max(...v.map(r => r.length_in)))}</text>
+      <line x1="${X(avg)}" x2="${X(avg)}" y1="${base - 40}" y2="${base + 10}" stroke="${col}" stroke-width="2"/>`;
+    v.forEach(r => { const k = r.length_in; seen[k] = (seen[k] || 0) + 1; s += `<circle cx="${X(k)}" cy="${base - (seen[k] - 1) * 13}" r="6" fill="${col}" fill-opacity=".9" stroke="var(--bg-page)" stroke-width="1.5"/>`; });
+  });
+  return s + `</svg>`;
+}
+
+// ---------- My Catches: trips table ----------
+// Clicking a trip's date fires onTripClick(localDate) — the page re-renders
+// everything above scoped to that one trip, same as clicking a species chip.
+function renderTripsTable(rows) {
+  const body = [...groupBy(rows, r => r.local_date).entries()].map(([d, v]) => {
+    const w = v.map(r => r.weight_lbs).filter(has), dep = v.map(r => r.depth_ft).filter(has);
+    const weather = v.filter(r => has(r.sky));
+    const lureEntry = [...groupBy(v, r => r.lure_display_name_snapshot).entries()].sort((a, b) => b[1].length - a[1].length)[0];
+    const temps = weather.map(r => r.air_temp_f);
+    const wx = weather.length
+      ? `${uniq(weather.map(r => r.sky)).join(" to ")}, ${Math.min(...temps) === Math.max(...temps) ? temps[0] : Math.min(...temps) + "–" + Math.max(...temps)}°F, pressure ${(weather[weather.length - 1].pressure_trend || "steady").toLowerCase()}`
+      : "No weather saved";
+    return `<tr>
+      <td><button class="linkish-trip" data-trip="${esc(d)}" style="background:none;border:0;padding:0;font-weight:600;text-decoration:underline;text-underline-offset:3px;color:var(--accent);cursor:pointer;">${dayShort(d)}</button></td>
+      <td class="num">${v.length}</td>
+      <td class="num muted">${w.length ? lb(bestFive(v)) : "n/a"}</td>
+      <td class="num muted">${w.length ? lb(Math.max(...w)) : "n/a"}</td>
+      <td class="muted">${dep.length ? (Math.min(...dep) === Math.max(...dep) ? ft(dep[0]) : trimNum(Math.min(...dep), 0) + "–" + ft(Math.max(...dep))) : "n/a"}</td>
+      <td class="muted">${clockTime(v[0].local_hour)}${v.length > 1 ? " to " + clockTime(v[v.length - 1].local_hour) : ""}</td>
+      <td class="muted">${esc(wx)}</td>
+      <td class="muted">${esc(lureEntry ? lureEntry[0] : "n/a")}</td>
+    </tr>`;
+  }).join("");
+  return `<div class="table-scroll"><table class="data-table" style="min-width:640px">
+    <thead><tr><th>Date</th><th class="num">Catches</th><th class="num">Best five</th><th class="num">Biggest</th><th>Depth</th><th>Bites</th><th>Weather</th><th>Most-used lure</th></tr></thead>
+    <tbody>${body}</tbody></table></div>
+    <p class="note" style="font-size:13px;color:var(--text-secondary);margin-top:10px;">A trip is every catch on one water on one day. Pick a date to see only that trip.</p>`;
+}
+
+// Wires trips-table date buttons (rendered by renderTripsTable above) so
+// clicking a date calls onTripClick(localDate). Re-call after every
+// re-render, same convention as wireMapChips.
+function wireTripRows(mountId, onTripClick) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+  mount.querySelectorAll("[data-trip]").forEach(btn => {
+    btn.addEventListener("click", () => onTripClick(btn.dataset.trip));
+  });
+}
+
+// Wires the water column's dot hover/focus to the floating #tip tooltip.
+// Call after mounting renderWaterColumn()'s HTML.
+function wireWaterColumnTooltip(mountId, rows) {
+  const mount = document.getElementById(mountId);
+  const tip = document.getElementById("tip");
+  if (!mount || !tip) return;
+  const byId = new Map(rows.map(r => [String(r.id), r]));
+  mount.querySelectorAll(".dot").forEach(dot => {
+    const r = byId.get(dot.dataset.id);
+    if (!r) return;
+    const show = e => {
+      tip.innerHTML = tipText(r);
+      tip.style.opacity = 1;
+      const box = dot.getBoundingClientRect();
+      const x = (e && e.clientX) || box.right, y = (e && e.clientY) || box.top;
+      tip.style.left = Math.min(x + 14, window.innerWidth - tip.offsetWidth - 8) + "px";
+      tip.style.top = Math.max(8, y - tip.offsetHeight - 12) + "px";
+    };
+    dot.onmousemove = show;
+    dot.onfocus = () => show();
+    dot.onmouseleave = dot.onblur = () => { tip.style.opacity = 0; };
+  });
 }
 
 // ---------- Lake Intel: top lures this week (trend list) ----------

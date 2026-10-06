@@ -1,8 +1,9 @@
 /* b8fish dashboard components — shared by every app/ route.
    Component inventory: app shell + nav, pill buttons, KPI card, hero
-   insight panel, pattern card + confidence meter, bite-clock chart,
-   horizontal bar list, data table, stylized map, info-tile grid,
-   heatmap, trend list (Lake Intel), filter pills, warn callout. */
+   insight panel, horizontal bar list, data table, stylized map, heat
+   grid (Lake Intel bite window; My Catches lure/retrieve by depth),
+   trend list (Lake Intel), filter pills, warn callout, My Catches'
+   water-column/weather-multi/size-plot/tooltip. */
 
 /* ---------- app shell ---------- */
 .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
@@ -61,7 +62,12 @@
 .page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--space-7); flex-wrap: wrap; }
 .page-head .date-range { font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
 .page-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(32px, 5vw, 56px); line-height: 1; margin: 0; }
-.page-head .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---------- labeled filter group (trip / species chips above the water column) ---------- */
+.filter-groups { display: flex; gap: 28px; flex-wrap: wrap; align-items: center; }
+.filter-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.filter-group > span { color: var(--text-secondary); font-size: 13px; margin-right: 2px; }
 
 /* ---------- KPI grid ---------- */
 .kpi-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--space-5); }
@@ -110,28 +116,6 @@
 .side-stack { width: 420px; flex-shrink: 0; display: flex; flex-direction: column; gap: var(--space-7); }
 .side-stack.narrow { width: 320px; }
 
-/* ---------- pattern cards + confidence meter ---------- */
-.pattern-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
-.pattern-card { background: var(--bg-surface-2); border-radius: var(--radius-lg); padding: 18px; display: flex; flex-direction: column; gap: 10px; }
-.pattern-card .top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-.pattern-card .title { font-weight: 600; font-size: 16px; }
-.pattern-card .metric { font-family: var(--font-display); font-weight: 700; font-size: 26px; color: var(--accent); line-height: 1; white-space: nowrap; }
-.pattern-card .desc { font-size: 14px; line-height: 1.5; color: var(--text-secondary); }
-
-.confidence-meter { display: flex; align-items: center; gap: 8px; }
-.confidence-meter .segments { display: flex; gap: 3px; }
-.confidence-meter .segments span { width: 18px; height: 6px; border-radius: 2px; background: var(--border); }
-.confidence-meter .segments span.is-filled { background: var(--accent); }
-.confidence-meter .conf-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
-
-/* ---------- bite clock ---------- */
-.bite-clock { display: flex; align-items: flex-end; gap: 4px; height: 200px; border-bottom: 1px solid var(--border); padding-bottom: 2px; }
-.bite-clock .col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; flex-grow: 1; height: 100%; }
-.bite-clock .cap { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); height: 14px; }
-.bite-clock .bar { width: 22px; border-radius: 4px 4px 1px 1px; background: var(--border); min-height: 3px; cursor: default; }
-.bite-clock .bar.is-prime { background: var(--accent); }
-.bite-clock .bar.is-other { background: var(--series-blue); }
-.bite-clock .tick { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); height: 14px; }
 .chart-legend { display: flex; gap: 20px; font-size: 13px; color: var(--text-secondary); flex-wrap: wrap; }
 .chart-legend .key { display: flex; align-items: center; gap: 8px; }
 .chart-legend .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
@@ -194,18 +178,6 @@
 .map-card-canvas svg { max-width: 100%; height: auto; }
 .chip-row { display: flex; gap: 10px; flex-wrap: wrap; }
 
-/* ---------- info tiles (conditions / bite-turn-on / compare) ---------- */
-.tile-grid { display: grid; gap: var(--space-4); }
-.tile-grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.tile-grid.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.info-tile {
-  background: var(--bg-surface-2); border-radius: var(--radius-lg); padding: 16px 18px;
-  display: flex; flex-direction: column; gap: 4px;
-}
-.info-tile .tile-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); }
-.info-tile .tile-value { font-family: var(--font-display); font-weight: 600; font-size: 30px; }
-.info-tile .tile-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
-
 /* ---------- warn callout ---------- */
 .callout-warn {
   display: flex; align-items: center; justify-content: space-between; gap: var(--space-5);
@@ -249,23 +221,49 @@
   height: 38px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;
   font-family: var(--font-mono); font-size: 12px;
 }
+.heatmap .cell.empty { border: 1px dashed var(--border); }
+
+/* ---------- My Catches: depth-through-the-day water column + size plot
+   (shared SVG text defaults) ---------- */
+svg text { font-family: var(--font-body); font-size: 13px; fill: var(--text-secondary); }
+svg .trip-label { font-family: var(--font-display); font-weight: 600; font-size: 15px; fill: var(--text-primary); }
+svg .dot { cursor: pointer; }
+svg .dot:focus-visible { outline: none; stroke: var(--text-primary); stroke-width: 3; }
+
+/* ---------- My Catches: lure depth-range bar (reused inside a data-table cell) ---------- */
+.range { position: relative; height: 12px; min-width: 100px; }
+.range::before { content: ""; position: absolute; left: 0; right: 0; top: 5.5px; border-top: 1px solid var(--border); }
+.range span { position: absolute; top: 2px; height: 8px; border-radius: 4px; background: var(--accent); min-width: 6px; }
+
+/* ---------- My Catches: weather small multiples ---------- */
+.weather-multi { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px 36px; margin-top: 12px; }
+.weather-multi h3 { font: 500 14px var(--font-body); margin: 0 0 10px; color: var(--text-secondary); }
+
+/* ---------- any number of equal-width panels side by side (heat grids; retrieve / structure / time of day) ---------- */
+.equal-row { display: flex; gap: var(--space-7); align-items: stretch; }
+.equal-row > .panel { flex: 1 1 0; min-width: 0; }
+
+/* ---------- floating chart tooltip (water column dots) ---------- */
+#tip {
+  position: fixed; z-index: 10; pointer-events: none; background: var(--bg-surface-2); color: var(--text-primary);
+  border: 1px solid var(--border-strong); padding: 10px 14px; border-radius: var(--radius-md);
+  font-size: 13px; line-height: 1.4; max-width: 280px; opacity: 0; transition: opacity .08s;
+}
+#tip b { font: 600 16px var(--font-display); display: block; margin-bottom: 2px; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 1180px) {
-  .split-row { flex-direction: column; }
+  .split-row, .equal-row { flex-direction: column; }
   .split-row > .panel.flex-side, .split-row > .panel.flex-side.narrow { width: 100%; }
   .side-stack, .side-stack.narrow { width: 100%; flex-direction: row; flex-wrap: wrap; }
   .side-stack > .panel { flex: 1 1 280px; }
   .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .tile-grid.cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 860px) {
   .app-header { padding: 0 20px; height: auto; min-height: 76px; padding-top: 12px; padding-bottom: 12px; }
   .app-main { padding: 28px 20px 40px; gap: var(--space-6); }
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .pattern-grid { grid-template-columns: 1fr; }
-  .tile-grid.cols-2, .tile-grid.cols-4 { grid-template-columns: 1fr; }
   .hero-insight { padding: 24px; }
   .hero-insight .hero-actions { width: 100%; }
   .hero-insight .hero-actions .btn { width: 100%; }
@@ -274,9 +272,67 @@
   .lake-search { width: 100%; }
   .heatmap { grid-template-columns: 34px repeat(6, minmax(0, 1fr)); }
   .heatmap .cell { font-size: 10.5px; height: 32px; }
+  .week { grid-template-columns: repeat(3, minmax(132px, 1fr)); }
+  .plan-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 560px) {
   .kpi-grid { grid-template-columns: 1fr; }
   .main-nav { order: 3; width: 100%; gap: 20px; }
+}
+
+/* ---------- Plan a Trip ---------- */
+.week { display: grid; grid-template-columns: repeat(7, minmax(132px, 1fr)); gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.day {
+  text-align: left; border: 1px solid var(--border); background: var(--bg-surface); border-radius: var(--radius-lg);
+  padding: 12px 14px 13px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--text-primary);
+}
+.day b { font: 600 20px/1.15 var(--font-display); }
+.day .wx { color: var(--text-secondary); }
+.day .m { margin-top: 8px; font-weight: 500; }
+.day .m.none { font-weight: 400; color: var(--text-secondary); }
+.day[aria-pressed="true"] { background: var(--accent-active-bg); border-color: var(--accent); }
+.tagbest {
+  align-self: flex-start; background: var(--series-orange); color: var(--bg-board);
+  border-radius: var(--radius-pill); padding: 1px 9px; font-size: 11px; font-weight: 600; margin-top: 6px;
+}
+
+.plan-grid { display: grid; grid-template-columns: 7fr 5fr; gap: var(--space-7); align-items: start; margin-top: var(--space-7); }
+.plan-left, .plan-right {
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 24px;
+}
+.plan-left h2, .plan-right h2 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 22px; text-transform: uppercase; letter-spacing: 0.02em; }
+.plan-lead { font-size: 15px; line-height: 1.5; color: var(--text-secondary); max-width: 60ch; margin-top: 10px; }
+.plan-left h3 { font: 600 16px var(--font-display); text-transform: uppercase; letter-spacing: 0.02em; margin: 26px 0 10px; }
+.count-tag { font: 400 13px var(--font-body); color: var(--text-secondary); margin-left: 8px; text-transform: none; letter-spacing: 0; }
+
+.rig span {
+  display: inline-block; border: 1px solid var(--border); background: var(--bg-surface-2); border-radius: var(--radius-pill);
+  padding: 5px 14px; margin: 0 6px 6px 0; font-size: 14px;
+}
+.rig span small { color: var(--text-secondary); font-size: 12px; margin-left: 4px; }
+
+.stop { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 14px; padding: 16px 0; border-top: 1px solid var(--border); }
+.stop .n {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-on-accent);
+  display: grid; place-items: center; font: 600 15px var(--font-display);
+}
+.stop .head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.stop .when { font: 600 19px var(--font-display); }
+.stop .do { font-size: 15px; margin-top: 3px; }
+.stop .why { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+.quiet { margin: 0 0 16px 46px; border: 1px dashed var(--border-strong); border-radius: var(--radius-md); padding: 9px 14px; font-size: 13px; color: var(--text-secondary); }
+.try { background: var(--bg-surface-2); border-radius: var(--radius-lg); padding: 14px 18px; margin-top: 10px; font-size: 14px; }
+.try b { font-weight: 600; }
+.quietbtn { margin-top: 20px; }
+
+.mapbox { background: var(--bg-surface-3); border-radius: var(--radius-lg); padding: 14px; }
+.mapbox svg { display: block; width: 100%; height: auto; }
+
+.ok { color: var(--accent); font-weight: 600; }
+.off { color: var(--text-secondary); }
+
+@media print {
+  .app-header, .week, .quietbtn { display: none !important; }
 }

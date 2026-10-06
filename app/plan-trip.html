@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Plan a Trip · b8fish</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="theme.css?v=12" />
+<link rel="stylesheet" href="dashboard.css?v=12" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="app-body">
+  <div class="app-shell">
+    <div id="header-mount"></div>
+
+    <main class="app-main">
+      <div class="page-head">
+        <div>
+          <div class="date-range" id="date-range-mount">SAMPLE FORECAST FOR THE NEXT SEVEN MORNINGS</div>
+          <h1 class="page-title" id="page-title-mount">Plan a trip</h1>
+        </div>
+      </div>
+
+      <div id="status-mount"></div>
+
+      <div class="week" id="week-mount" role="group" aria-label="Pick a day"></div>
+
+      <div class="plan-grid" id="plan-mount"></div>
+    </main>
+  </div>
+
+  <script src="config.js?v=12"></script>
+  <script src="session.js?v=12"></script>
+  <script src="components.js?v=12"></script>
+  <script src="my-catches-data.js?v=12"></script>
+  <script src="catches-analytics.js?v=12"></script>
+  <script src="plan-trip.js?v=12"></script>
+  <script>
+    (async function () {
+      const session = await requireSession();
+      if (!session) return;
+
+      const ok = await requireIsPro(session.user);
+      if (!ok) return;
+
+      document.getElementById("header-mount").innerHTML = renderHeader("plan-trip", session.user.email);
+      wireHeaderSignOut();
+
+      const { catches, waters, lakes } = await loadMyCatchesRaw(supabaseClient, session.user.id);
+      const watersById = new Map(waters.map(w => [w.id, w]));
+      const lakeNameById = new Map(lakes.map(l => [l.id, l.name]));
+
+      // Same catch-or-water GPS fallback as the My Catches map.
+      const annotated = catches.map(r => {
+        const water = r.water_id ? watersById.get(r.water_id) : null;
+        return { ...r, _lat: r.latitude != null ? r.latitude : (water ? water.latitude : null), _lng: r.longitude != null ? r.longitude : (water ? water.longitude : null) };
+      });
+      const withCoords = annotated.filter(r => has(r._lat) && has(r._lng));
+
+      if (withCoords.length < 3) {
+        document.getElementById("status-mount").innerHTML = `<section class="panel"><p class="muted">Log a few more catches with a location to start planning trips — Plan a Trip works from your own past trips, so it needs some history first.</p></section>`;
+        return;
+      }
+
+      // Most-common lake among the catches actually in view, not just the
+      // first water row — a few minor/satellite waters shouldn't outrank
+      // the lake the angler actually fishes.
+      const lakeNames = withCoords.map(r => (r.water_id && watersById.get(r.water_id)?.lake_id) ? lakeNameById.get(watersById.get(r.water_id).lake_id) : null).filter(Boolean);
+      const lakeName = lakeNames.length ? modeOf(lakeNames) : (waters[0]?.name || "your water");
+      document.getElementById("page-title-mount").textContent = `Plan a trip on ${lakeName}`;
+
+      const allSpots = clusterSpots(withCoords);
+      const profiles = tripProfiles(withCoords);
+      const centerLat = mean(withCoords.map(r => r._lat)), centerLng = mean(withCoords.map(r => r._lng));
+
+      let forecast;
+      try {
+        forecast = await fetchForecast(centerLat, centerLng);
+        document.getElementById("date-range-mount").textContent = `LIVE FORECAST FOR ${lakeName.toUpperCase()}`;
+      } catch (err) {
+        document.getElementById("status-mount").innerHTML = `<section class="panel"><p class="muted">Couldn't reach the forecast service — try again shortly.</p></section>`;
+        return;
+      }
+
+      const picks = forecast.map(f => ({ f, c: closest(f, profiles) }));
+      const ranked = picks.filter(p => p.c && p.c.score >= MATCH_MIN).sort((a, b) => b.c.score - a.c.score || b.c.trip.rows.length - a.c.trip.rows.length);
+      const bestDate = ranked.length ? ranked[0].f.date : null;
+      let selectedDate = bestDate || forecast[0].date;
+
+      function renderPage() {
+        document.getElementById("week-mount").innerHTML = renderWeekStrip(picks, selectedDate, bestDate);
+        document.querySelectorAll("#week-mount [data-day]").forEach(b => b.onclick = () => { selectedDate = b.dataset.day; renderPage(); });
+
+        const { f, c } = picks.find(p => p.f.date === selectedDate);
+        const ok = c && c.score >= MATCH_MIN;
+        const { left, right } = ok ? renderPlanFound(f, c, withCoords, allSpots) : renderPlanNotFound(f, c);
+        document.getElementById("plan-mount").innerHTML = left + right;
+        const printBtn = document.getElementById("print-plan");
+        if (printBtn) printBtn.onclick = () => window.print();
+      }
+      renderPage();
+    })();
+  </script>
+</body>
+</html>
