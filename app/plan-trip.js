@@ -41,8 +41,8 @@ function moonPhaseForDate(date) {
 // Catches within SPOT_RADIUS_METERS of each other become one spot —
 // greedy nearest-first clustering over the account's full catch history.
 // Mutates each row with a _spot index; returns the spot centroids
-// ({lat, lng, n}) so routeSketch() can draw every other spot as a faint
-// background dot.
+// ({lat, lng, n}) so mountRouteMap() can draw every other spot as a faint
+// background marker.
 function clusterSpots(rows) {
   const spots = [];
   const metersPerDegLat = 111320;
@@ -146,27 +146,46 @@ function worthTesting(plan, f, trip, allCleanRows) {
   return `Stay past ${clockTime(plan.stops[plan.stops.length - 1].end)}. You have no afternoon catch logged.`;
 }
 
-// Route sketch from the angler's own pins — straight lines, no basemap.
-function routeSketch(stops, allSpots) {
-  const W = 460, H = 330, P = 56;
-  const k = Math.cos(mean(stops.map(a => a.lat)) * Math.PI / 180);
-  const cx = mean(stops.map(a => a.lng * k)), cy = mean(stops.map(a => a.lat));
-  const spanX = Math.max(0.016, ...stops.map(a => Math.abs(a.lng * k - cx) * 2)), spanY = Math.max(0.016, ...stops.map(a => Math.abs(a.lat - cy) * 2));
-  const sc = Math.min((W - 2 * P) / spanX, (H - 2 * P) / spanY);
-  const X = a => W / 2 + (a.lng * k - cx) * sc, Y = a => H / 2 - (a.lat - cy) * sc;
-  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sketch of the run between stops">`;
-  allSpots.filter(a => X(a) > 8 && X(a) < W - 8 && Y(a) > 8 && Y(a) < H - 8).forEach(a => s += `<circle cx="${X(a)}" cy="${Y(a)}" r="4" fill="var(--text-secondary)" fill-opacity=".35"/>`);
-  s += `<polyline fill="none" stroke="var(--text-primary)" stroke-width="2" stroke-dasharray="1 7" stroke-linecap="round" points="${stops.map(a => X(a) + "," + Y(a)).join(" ")}"/>`;
-  stops.forEach((a, i) => {
-    if (!i) return;
-    const b = stops[i - 1], dx = X(a) - X(b), dy = Y(a) - Y(b), len = Math.hypot(dx, dy) || 1;
-    let nx = -dy / len, ny = dx / len; if (ny > 0) { nx = -nx; ny = -ny; }
-    s += `<text x="${(X(a) + X(b)) / 2 + nx * 20}" y="${(Y(a) + Y(b)) / 2 + ny * 20 + 4}" text-anchor="middle" paint-order="stroke" stroke="var(--bg-surface-2)" stroke-width="4">${trimNum(miles(b, a), 1)} mi</text>`;
+// Real map of the run (Leaflet + OpenStreetMap tiles) — numbered stop
+// markers in order, a straight-line route between them (still straight
+// lines, not routed over water — say so in the UI), and every other spot
+// the angler has fished as a faint background marker.
+let _routeMapInstance = null;
+
+function mountRouteMap(containerId, stops, allSpots) {
+  const el = document.getElementById(containerId);
+  if (!el || typeof L === "undefined") return;
+
+  // The container div is a fresh DOM node every render (the whole
+  // plan-mount panel gets re-stringified when the angler picks a
+  // different day), so the previous Leaflet instance's node is already
+  // gone — just drop the old instance and start clean.
+  if (_routeMapInstance) { _routeMapInstance.remove(); _routeMapInstance = null; }
+
+  _routeMapInstance = L.map(containerId, { scrollWheelZoom: false });
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  }).addTo(_routeMapInstance);
+  L.control.scale({ metric: false }).addTo(_routeMapInstance);
+
+  allSpots.forEach(s => {
+    L.circleMarker([s.lat, s.lng], { radius: 5, weight: 0, color: "var(--text-secondary)", fillOpacity: 0.35 }).addTo(_routeMapInstance);
   });
-  stops.forEach((a, i) => s += `<circle cx="${X(a)}" cy="${Y(a)}" r="14" fill="var(--accent)"/><text x="${X(a)}" y="${Y(a) + 5.5}" text-anchor="middle" style="fill:var(--accent-on-accent);font:600 16px var(--font-display)">${i + 1}</text>`);
-  const half = sc / 69.05 / 2;
-  s += `<line x1="16" x2="${16 + half}" y1="${H - 14}" y2="${H - 14}" stroke="var(--text-secondary)" stroke-width="2"/><text x="${24 + half}" y="${H - 10}">Half a mile</text><text x="${W - 16}" y="20" text-anchor="end">North is up</text>`;
-  return s + `</svg>`;
+
+  L.polyline(stops.map(s => [s.lat, s.lng]), {
+    color: "var(--text-primary)", weight: 2, opacity: 0.8, dashArray: "1 8",
+  }).addTo(_routeMapInstance);
+
+  stops.forEach((s, i) => {
+    L.marker([s.lat, s.lng], {
+      icon: L.divIcon({ className: "route-stop-marker", html: String(i + 1), iconSize: [28, 28] }),
+    }).addTo(_routeMapInstance);
+  });
+
+  const bounds = L.latLngBounds(stops.map(s => [s.lat, s.lng]));
+  _routeMapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+  setTimeout(() => _routeMapInstance.invalidateSize(), 0);
 }
 
 // ---------- forecast fetch (live Open-Meteo, replaces the prototype's sample FORECAST array) ----------
@@ -255,12 +274,12 @@ function renderPlanFound(f, c, allCleanRows, allSpots) {
   </section>`;
   const right = `<section class="plan-right">
     <h2>Your run on the map</h2>
-    <div class="mapbox">${routeSketch(S, allSpots)}</div>
-    <p class="note">Sketch from your own pins. Faint dots are your other spots. Distances are straight lines.</p>
+    <div id="route-map-canvas" class="leaflet-canvas"></div>
+    <p class="note">Faint dots are your other spots. The route is drawn as straight lines, not routed over water.</p>
     <h2 style="margin-top:36px">Why ${esc(dayShort(c.trip.date))}<span class="count-tag">${c.score} of 5 conditions match</span></h2>
     ${renderChecksTable(f, c)}
   </section>`;
-  return { left, right };
+  return { left, right, stops: S, allSpots };
 }
 
 function renderPlanNotFound(f, c) {

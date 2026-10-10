@@ -192,6 +192,10 @@
   background: var(--bg-surface-2); color: var(--text-primary);
 }
 .leaflet-canvas .leaflet-popup-content { font-family: var(--font-body); font-size: 13px; }
+.leaflet-canvas .leaflet-control-scale-line {
+  background: color-mix(in srgb, var(--bg-page) 75%, transparent); color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
 .catch-map-count {
   background: none; border: none; box-shadow: none; color: var(--accent-on-accent);
   font-family: var(--font-mono); font-weight: 600; font-size: 12px;
@@ -347,8 +351,11 @@ svg .dot:focus-visible { outline: none; stroke: var(--text-primary); stroke-widt
 .try b { font-weight: 600; }
 .quietbtn { margin-top: 20px; }
 
-.mapbox { background: var(--bg-surface-3); border-radius: var(--radius-lg); padding: 14px; }
-.mapbox svg { display: block; width: 100%; height: auto; }
+.route-stop-marker {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-on-accent);
+  display: grid; place-items: center; font: 600 15px var(--font-display);
+  border: 2px solid var(--bg-board);
+}
 
 .ok { color: var(--accent); font-weight: 600; }
 .off { color: var(--text-secondary); }
