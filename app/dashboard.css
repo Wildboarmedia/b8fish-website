@@ -178,6 +178,26 @@
 .map-card-canvas svg { max-width: 100%; height: auto; }
 .chip-row { display: flex; gap: 10px; flex-wrap: wrap; }
 
+/* ---------- My Catches: real map (Leaflet + OpenStreetMap) ---------- */
+.leaflet-canvas { height: 420px; border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-surface-3); }
+.leaflet-canvas .leaflet-control-attribution {
+  background: color-mix(in srgb, var(--bg-page) 75%, transparent); color: var(--text-secondary);
+}
+.leaflet-canvas .leaflet-control-attribution a { color: var(--text-secondary); }
+.leaflet-canvas .leaflet-control-zoom a {
+  background: var(--bg-surface); color: var(--text-primary); border-color: var(--border);
+}
+.leaflet-canvas .leaflet-control-zoom a:hover { background: var(--bg-surface-2); }
+.leaflet-canvas .leaflet-popup-content-wrapper, .leaflet-canvas .leaflet-popup-tip {
+  background: var(--bg-surface-2); color: var(--text-primary);
+}
+.leaflet-canvas .leaflet-popup-content { font-family: var(--font-body); font-size: 13px; }
+.catch-map-count {
+  background: none; border: none; box-shadow: none; color: var(--accent-on-accent);
+  font-family: var(--font-mono); font-weight: 600; font-size: 12px;
+}
+.catch-map-count::before { display: none; }
+
 /* ---------- warn callout ---------- */
 .callout-warn {
   display: flex; align-items: center; justify-content: space-between; gap: var(--space-5);

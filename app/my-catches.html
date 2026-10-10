@@ -6,9 +6,11 @@
 <title>My Catches · b8fish</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="theme.css?v=12" />
-<link rel="stylesheet" href="dashboard.css?v=12" />
+<link rel="stylesheet" href="theme.css?v=13" />
+<link rel="stylesheet" href="dashboard.css?v=13" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body class="app-body">
   <div class="app-shell">
@@ -131,13 +133,13 @@
   </div>
   <div id="tip" role="status"></div>
 
-  <script src="config.js?v=12"></script>
-  <script src="session.js?v=12"></script>
-  <script src="data.js?v=12"></script>
-  <script src="components.js?v=12"></script>
-  <script src="my-catches-data.js?v=12"></script>
-  <script src="analytics.js?v=12"></script>
-  <script src="catches-analytics.js?v=12"></script>
+  <script src="config.js?v=13"></script>
+  <script src="session.js?v=13"></script>
+  <script src="data.js?v=13"></script>
+  <script src="components.js?v=13"></script>
+  <script src="my-catches-data.js?v=13"></script>
+  <script src="analytics.js?v=13"></script>
+  <script src="catches-analytics.js?v=13"></script>
   <script>
     (async function () {
       const session = await requireSession();
@@ -156,11 +158,12 @@
       document.getElementById("kpi-mount").innerHTML = renderKpiGrid(d.kpis);
       document.getElementById("hero-mount").innerHTML = renderHeroInsight(d.hero);
 
+      document.getElementById("map-mount").innerHTML = renderMapCanvas();
       function renderMap(filterKey) {
         const mapData = buildMap(d._annotated, waters, filterKey);
         document.getElementById("map-title-mount").textContent = "Where you catch: " + mapData.water;
-        document.getElementById("map-sub-mount").textContent = mapData.sub;
-        document.getElementById("map-mount").innerHTML = renderLakeMap(mapData);
+        document.getElementById("map-sub-mount").textContent = mapData.sub.replace(" · stylized map", "");
+        mountCatchMap("catch-map-canvas", buildRealMapPoints(d._annotated, waters, filterKey));
         document.getElementById("map-chips-mount").innerHTML = renderFilterChips(mapData.chips);
         wireMapChips("map-chips-mount", renderMap);
       }

@@ -181,12 +181,47 @@ function buildMap(catches, waters, filterKey) {
   });
 
   return {
-    water: effectiveFilter === "All" ? (waters[0]?.name || "your waters") : effectiveFilter,
+    // Most-common water among the catches in view, not just the first row
+    // in the table — a few minor/satellite waters shouldn't outrank the
+    // one the angler actually fishes.
+    water: effectiveFilter === "All" ? (sortedGroups[0]?.[0] || waters[0]?.name || "your waters") : effectiveFilter,
     sub: `${withCoords.length} fish · ${clusters.size} spot${clusters.size === 1 ? "" : "s"} · stylized map`,
     width, height, shoreline: [], dots, callouts: [],
     legend: [{ color: "var(--accent)", label: "Your catches" }],
     chips,
   };
+}
+
+// Real-coordinate version of buildMap's clustering, for the Leaflet map on
+// My Catches — same catch-or-water GPS fallback and same filterKey
+// semantics, but returns {lat, lng, rows} clusters (true lat/lng, ~11m
+// grouping) instead of buildMap's SVG pixel-space dots, since a real map
+// needs real coordinates, not a normalized canvas position.
+function buildRealMapPoints(catches, waters, filterKey) {
+  const watersById = new Map(waters.map(w => [w.id, w]));
+  const withCoordsAll = catches
+    .map(c => {
+      const water = c.water_id ? watersById.get(c.water_id) : null;
+      const lat = c.latitude != null ? c.latitude : (water ? water.latitude : null);
+      const lng = c.longitude != null ? c.longitude : (water ? water.longitude : null);
+      return { ...c, _mapLat: lat, _mapLng: lng, _groupKey: c._waterName || "Untagged" };
+    })
+    .filter(c => c._mapLat != null && c._mapLng != null);
+
+  if (!withCoordsAll.length) return [];
+
+  const groupCounts = new Map();
+  for (const c of withCoordsAll) groupCounts.set(c._groupKey, (groupCounts.get(c._groupKey) || 0) + 1);
+  const effectiveFilter = filterKey && groupCounts.has(filterKey) ? filterKey : "All";
+  const withCoords = effectiveFilter === "All" ? withCoordsAll : withCoordsAll.filter(c => c._groupKey === effectiveFilter);
+
+  const clusters = new Map();
+  for (const c of withCoords) {
+    const key = `${c._mapLat.toFixed(4)},${c._mapLng.toFixed(4)}`;
+    if (!clusters.has(key)) clusters.set(key, { lat: c._mapLat, lng: c._mapLng, rows: [] });
+    clusters.get(key).rows.push(c);
+  }
+  return [...clusters.values()];
 }
 
 function buildCatchLog(catches) {

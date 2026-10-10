@@ -275,6 +275,64 @@ function renderLakeMap(map) {
   `;
 }
 
+// ---------- My Catches: real map (Leaflet + OpenStreetMap tiles) ----------
+// A stable one-time mount point — unlike every other render* function
+// here, this is never re-stringified into innerHTML after first mount,
+// since a live Leaflet map is a stateful JS object, not a template.
+function renderMapCanvas() {
+  return `<div id="catch-map-canvas" class="leaflet-canvas"></div>`;
+}
+
+let _catchMapInstance = null;
+let _catchMapMarkers = null;
+
+// clusters: [{lat, lng, rows}] from buildRealMapPoints(). Safe to call
+// repeatedly (e.g. on every location-chip click) — creates the map once,
+// then just clears and re-adds markers and refits the view.
+function mountCatchMap(containerId, clusters) {
+  const el = document.getElementById(containerId);
+  if (!el || typeof L === "undefined") return;
+
+  if (!_catchMapInstance) {
+    _catchMapInstance = L.map(containerId, { scrollWheelZoom: false });
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+    }).addTo(_catchMapInstance);
+    _catchMapMarkers = L.layerGroup().addTo(_catchMapInstance);
+  }
+
+  _catchMapMarkers.clearLayers();
+  if (!clusters.length) {
+    _catchMapInstance.setView([0, 0], 2);
+    return;
+  }
+
+  clusters.forEach(cl => {
+    const n = cl.rows.length;
+    const marker = L.circleMarker([cl.lat, cl.lng], {
+      radius: n > 1 ? 13 : 9,
+      color: "var(--bg-board)",
+      weight: 3,
+      fillColor: "var(--accent)",
+      fillOpacity: 0.95,
+    }).addTo(_catchMapMarkers);
+
+    const popup = n > 1
+      ? `<b>${n} catches</b><br>${esc(uniq(cl.rows.map(r => r.species)).join(", "))}`
+      : `<b>${esc(cl.rows[0].species)}</b><br>${esc(formatDateShort(new Date(cl.rows[0].timestamp)))} · ${esc(cl.rows[0].lure_display_name_snapshot || "")}`;
+    marker.bindPopup(popup);
+
+    if (n > 1) {
+      marker.bindTooltip(String(n), { permanent: true, direction: "center", className: "catch-map-count" });
+    }
+  });
+
+  const bounds = L.latLngBounds(clusters.map(cl => [cl.lat, cl.lng]));
+  _catchMapInstance.fitBounds(bounds, { padding: [32, 32], maxZoom: 15 });
+  setTimeout(() => _catchMapInstance.invalidateSize(), 0);
+}
+
 // ---------- warn callout ----------
 function renderWarnCallout(data) {
   const href = data.firstMissingId ? `edit-catch.html?id=${encodeURIComponent(data.firstMissingId)}` : "#";
