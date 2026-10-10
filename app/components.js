@@ -137,7 +137,7 @@ function renderLuresTable(lures) {
         </thead>
         <tbody>
           ${lures.map(l => `
-            <tr>
+            <tr class="is-clickable" data-lure-id="${esc(l.id)}" tabindex="0">
               <td class="strong">${l.isTiedOn ? '<span class="lead-dot"></span>' : ""}${esc(l.brand)} ${esc(l.modelName)}</td>
               <td class="muted">${esc(l.colorPattern)}</td>
               <td class="muted">${esc(l.type)}</td>
@@ -209,6 +209,16 @@ function wireMapChips(mountId, onSelect) {
 function wireCatchLogRows() {
   document.querySelectorAll("table.data-table tr.is-clickable[data-catch-id]").forEach(row => {
     const go = () => { location.href = `edit-catch.html?id=${encodeURIComponent(row.dataset.catchId)}`; };
+    row.addEventListener("click", go);
+    row.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
+  });
+}
+
+// Wires lures-table rows (rendered by renderLuresTable above) so clicking
+// or Enter-ing a row opens that lure's edit page. Call after mounting.
+function wireLuresTableRows() {
+  document.querySelectorAll("table.data-table tr.is-clickable[data-lure-id]").forEach(row => {
+    const go = () => { location.href = `edit-lure.html?id=${encodeURIComponent(row.dataset.lureId)}`; };
     row.addEventListener("click", go);
     row.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
   });
