@@ -17,7 +17,6 @@ function esc(str) {
 function renderHeader(activeRoute, userEmail) {
   const navItems = [
     { label: "My Catches", href: "my-catches.html", route: "my-catches" },
-    { label: "Patterns", href: "#", route: "patterns" },
     { label: "Lures", href: "lures.html", route: "lures" },
     { label: "Lake Intel", href: "lake-intel.html", route: "lake-intel" },
   ];
